@@ -12,6 +12,8 @@ const PIECE_NAMES_FR = {
     'king': 'Roi'
 } as const;
 
+type OpeningKey = 'italian' | 'spanish' | 'sicilian';
+
 const ChessBoard: React.FC = () => {
     const [gameState, setGameState] = useState<GameState>({
         board: initializeBoard(),
@@ -39,6 +41,42 @@ const ChessBoard: React.FC = () => {
     }[]>([]);
     const [moves, setMoves] = useState<string[]>([]);
     const canUndo = moveHistory.length > 0;
+    const [selectedOpening, setSelectedOpening] = useState<OpeningKey | ''>('');
+
+    const OPENINGS_GUIDE: Record<OpeningKey, {
+        name: string;
+        steps: string[];
+        description: string;
+    }> = {
+        'italian': {
+            name: "Partie italienne",
+            steps: [
+                "1. e4 e5 (Avancez les pions centraux)",
+                "2. Nf3 (Développez le cavalier, attaquez e5)",
+                "3. Nc6 (Défendez e5 et développez une pièce)",
+                "4. Bc4 (Placez le fou sur la diagonale dangereuse)"
+            ],
+            description: "Une ouverture classique visant à contrôler le centre rapidement"
+        },
+        'spanish': {
+            name: "Partie espagnole (Ruy Lopez)",
+            steps: [
+                "1. e4 e5",
+                "2. Nf3 Nc6",
+                "3. Bb5 (Attaquez le défenseur de e5)"
+            ],
+            description: "L'une des ouvertures les plus populaires et sophistiquées"
+        },
+        'sicilian': {
+            name: "Défense sicilienne",
+            steps: [
+                "1. e4 c5 (Contre-attaquez immédiatement au centre)",
+                "2. Nf3 (Développez et contrôlez d4)",
+                "3. d6 ou Nc6 (Préparez-vous à contester le centre)"
+            ],
+            description: "Une défense agressive et complexe contre 1.e4"
+        }
+    };
 
     const canCastle = (kingPos: Position, rookPos: Position): boolean => {
         const king = gameState.board[kingPos.y][kingPos.x];
@@ -375,12 +413,39 @@ const ChessBoard: React.FC = () => {
                 </button>
                 
                 {easyMode && (
-                    <div className="moves-description">
-                        <h4>Description des coups</h4>
-                        <div className="description">
-                            {getCurrentOpeningDescription()}
+                    <>
+                        <div className="moves-description">
+                            <h4>Description des coups</h4>
+                            <div className="description">
+                                {getCurrentOpeningDescription()}
+                            </div>
                         </div>
-                    </div>
+
+                        <div className="opening-guide">
+                            <select 
+                                value={selectedOpening} 
+                                onChange={(e) => setSelectedOpening(e.target.value as OpeningKey | '')}
+                                className="opening-select"
+                            >
+                                <option value="">Choisir une ouverture...</option>
+                                <option value="italian">Partie italienne</option>
+                                <option value="spanish">Partie espagnole</option>
+                                <option value="sicilian">Défense sicilienne</option>
+                            </select>
+                            
+                            {selectedOpening && OPENINGS_GUIDE[selectedOpening] && (
+                                <div className="opening-steps">
+                                    <h4>{OPENINGS_GUIDE[selectedOpening].name}</h4>
+                                    <p className="description">{OPENINGS_GUIDE[selectedOpening].description}</p>
+                                    <ul>
+                                        {OPENINGS_GUIDE[selectedOpening].steps.map((step, index) => (
+                                            <li key={index}>{step}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </div>
+                    </>
                 )}
             </div>
             <div className="game-area">
