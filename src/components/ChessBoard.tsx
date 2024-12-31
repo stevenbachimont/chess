@@ -38,6 +38,7 @@ const ChessBoard: React.FC = () => {
         hasMoved: GameState['hasMoved']
     }[]>([]);
     const [moves, setMoves] = useState<string[]>([]);
+    const canUndo = moveHistory.length > 0;
 
     const canCastle = (kingPos: Position, rookPos: Position): boolean => {
         const king = gameState.board[kingPos.y][kingPos.x];
@@ -253,18 +254,134 @@ const ChessBoard: React.FC = () => {
         }
     };
 
+    const getCurrentOpeningDescription = () => {
+        if (moves.length === 0) {
+            return "En attente du premier coup...";
+        }
+
+        const matchMove = (move: string | undefined, from: string, to: string) => {
+            if (!move) return false;
+            return move.includes(`${from} → ${to}`);
+        };
+
+        // Ouvertures avec 1.e4 ou réponses à 1.e4
+        if (matchMove(moves[0], 'e2', 'e4') || matchMove(moves[0], 'e7', 'e5')) {
+            // Défense sicilienne
+            if (matchMove(moves[1], 'c7', 'c5') || matchMove(moves[1], 'c2', 'c4')) {
+                return "Défense sicilienne";
+            }
+            // Défense française
+            if (matchMove(moves[1], 'e7', 'e6') || matchMove(moves[1], 'e2', 'e3')) {
+                return "Défense française";
+            }
+            // Défense Caro-Kann
+            if (matchMove(moves[1], 'c7', 'c6') || matchMove(moves[1], 'c2', 'c3')) {
+                return "Défense Caro-Kann";
+            }
+            // Défense Pirc
+            if (matchMove(moves[1], 'd7', 'd6') || matchMove(moves[1], 'd2', 'd3')) {
+                return "Défense Pirc";
+            }
+            // Défense Alekhine
+            if (matchMove(moves[1], 'b8', 'f6') || matchMove(moves[1], 'g1', 'f3')) {
+                return "Défense Alekhine";
+            }
+
+            // Partie espagnole (Ruy Lopez)
+            if (moves.length >= 5 && 
+                moves.some(m => matchMove(m, 'g1', 'f3') || matchMove(m, 'b8', 'c6')) &&
+                moves.some(m => matchMove(m, 'f1', 'b5') || matchMove(m, 'c8', 'b4'))) {
+                return "Partie espagnole (Ruy Lopez)";
+            }
+        }
+
+        // Ouvertures avec 1.d4
+        if (moves[0] === 'Blanc: Pion d2 → d4') {
+            // Gambit dame
+            if (moves[1] === 'Noir: Pion d7 → d5') {
+                if (moves[2] === 'Blanc: Pion c2 → c4') {
+                    return "Gambit dame";
+                }
+                return "Partie du pion dame";
+            }
+            // Défense indienne du roi
+            if (moves[1] === 'Noir: Cavalier g8 → f6' && 
+                moves[2] === 'Blanc: Pion c2 → c4' && 
+                moves[3] === 'Noir: Pion g7 → g6') {
+                return "Défense indienne du roi";
+            }
+            // Défense Nimzo-indienne
+            if (moves[1] === 'Noir: Cavalier g8 → f6' && 
+                moves[2] === 'Blanc: Pion c2 → c4' && 
+                moves[3] === 'Noir: Pion e7 → e6' && 
+                moves[4] === 'Blanc: Cavalier b1 → c3' && 
+                moves[5] === 'Noir: Fou f8 → b4') {
+                return "Défense Nimzo-indienne";
+            }
+        }
+
+        // Ouvertures avec 1.c4
+        if (moves[0] === 'Blanc: Pion c2 → c4') {
+            return "Partie anglaise";
+        }
+
+        // Ouvertures avec 1.Nf3
+        if (moves[0] === 'Blanc: Cavalier g1 → f3') {
+            return "Partie Réti";
+        }
+
+        // Défense hollandaise
+        if (moves[0] === 'Blanc: Pion d2 → d4' && 
+            moves[1] === 'Noir: Pion f7 → f5') {
+            return "Défense hollandaise";
+        }
+
+        // Partie italienne
+        if (moves.length >= 5) {
+            const isItalian = 
+                (moves[0].includes('Blanc') && matchMove(moves[0], 'e2', 'e4')) &&
+                (moves[1].includes('Noir') && matchMove(moves[1], 'e7', 'e5')) &&
+                (moves[2].includes('Blanc') && matchMove(moves[2], 'g1', 'f3')) &&
+                (moves[3].includes('Noir') && matchMove(moves[3], 'b8', 'c6')) &&
+                (moves[4].includes('Blanc') && matchMove(moves[4], 'f1', 'c4'));
+            
+            if (isItalian) {
+                if (gameState.currentTurn === 'black') {
+                    return "Partie italienne - Pour vous défendre : \n" +
+                           "1. Jouez Cavalier f6 pour protéger e5 et développer une pièce\n" +
+                           "2. Ou jouez Fou c5 (défense classique) pour contester le centre\n" +
+                           "3. Évitez de jouer f6 qui affaiblirait votre structure de pions";
+                }
+                return "Partie italienne - Une ouverture classique qui vise à contrôler le centre";
+            }
+        }
+
+        return "Ouverture non reconnue";
+    };
+
+    const toggleEasyMode = () => setEasyMode(!easyMode);
+
     return (
         <div className="chess-container">
             <div className="game-controls">
-                <button className="easy-mode-button" onClick={() => setEasyMode(!easyMode)}>
-                    {easyMode ? 'Mode Normal' : 'Mode Facile'}
-                </button>
-                <button className="undo-button" onClick={undoLastMove} disabled={moveHistory.length === 0}>
-                    Annuler
-                </button>
                 <button className="reset-button" onClick={resetGame}>
-                    Réinitialiser
+                    Nouvelle partie
                 </button>
+                <button className="undo-button" onClick={undoLastMove} disabled={!canUndo}>
+                    Annuler coup
+                </button>
+                <button className="easy-mode-button" onClick={toggleEasyMode}>
+                    {easyMode ? 'Mode normal' : 'Mode facile'}
+                </button>
+                
+                {easyMode && (
+                    <div className="moves-description">
+                        <h4>Description des coups</h4>
+                        <div className="description">
+                            {getCurrentOpeningDescription()}
+                        </div>
+                    </div>
+                )}
             </div>
             <div className="game-area">
                 {errorMessage && (
