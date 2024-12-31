@@ -1,0 +1,242 @@
+:root {
+  --board-size: min(90vw, 90vh);
+  --square-size: calc(var(--board-size) / 8);
+}
+
+.chess-container {
+    position: relative;
+    width: var(--board-size);
+    height: var(--board-size);
+    margin: auto;
+    display: flex;
+    gap: 20px;
+}
+
+.game-area {
+    position: relative;
+    width: var(--board-size);
+}
+
+.moves-list {
+    min-width: 200px;
+    padding: 15px;
+    background-color: #24202000;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #949292;
+    }
+    
+    .move {
+        padding: 5px 0;
+        border-bottom: 1px solid #ddd;
+        
+        &:last-child {
+            border-bottom: none;
+        }
+        
+        &.white {
+            color: #1976D2;
+        }
+        
+        &.black {
+            color: #D32F2F;
+        }
+    }
+}
+
+.chess-board {
+    width: var(--board-size);
+    height: var(--board-size);
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    border: 2px solid #333;
+    transform: rotate(90deg);
+    margin: auto;
+    
+    .square {
+        width: var(--square-size);
+        height: var(--square-size);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        
+        &.light {
+            background-color: #a09b9b;
+        }
+        
+        &.dark {
+            background-color: #0f0f0f;
+        }
+        
+        &:hover {
+            opacity: 0.8;
+        }
+        
+        &.highlighted {
+            background-color: rgba(0, 255, 0, 0.3);
+            
+            &:hover {
+                background-color: rgba(0, 255, 0, 0.5);
+            }
+        }
+        
+        &.check-path {
+            background-color: rgba(255, 0, 0, 0.3) !important;
+            
+            &:hover {
+                background-color: rgba(255, 0, 0, 0.5) !important;
+            }
+        }
+    }
+} 
+
+.chess-piece {
+    transform: rotate(-90deg);
+    font-size: calc(var(--square-size) * 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    user-select: none;
+
+    &[class*="white-"] {
+        color: #ffffff;
+        -webkit-text-stroke: 1px #000000;
+        text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    &[class*="black-"] {
+        color: #ff0000;  // Rouge vif
+        -webkit-text-stroke: 1px #800000;  // Rouge foncé pour le contour
+        text-shadow: none;
+    }
+
+    &.check {
+        animation: blink 1s infinite;
+    }
+}
+
+.coordinates {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #333;
+    font-weight: bold;
+    font-size: calc(var(--square-size) * 0.3);
+    
+    &.number {
+        width: calc(var(--square-size) * 0.4);
+        height: var(--square-size);
+        left: calc(var(--square-size) * -0.4);
+        transform: rotate(90deg);
+    }
+    
+    &.letter {
+        width: var(--square-size);
+        height: calc(var(--square-size) * 0.4);
+        top: calc(var(--square-size) * -0.4);
+    }
+} 
+
+.game-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-right: 20px;
+}
+
+.easy-mode-button {
+    position: static;
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 120px;
+    
+    &:hover {
+        background-color: #45a049;
+    }
+} 
+
+.error-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ff444483;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    animation: fadeIn 0.3s ease-in;
+    cursor: pointer;
+    z-index: 1000;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    
+    &:hover {
+        background-color: #ff3333;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+} 
+
+.reset-button {
+    position: static;
+    padding: 8px 16px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 120px;
+    
+    &:hover {
+        background-color: #1976D2;
+    }
+} 
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+} 
+
+.undo-button {
+    position: static;
+    padding: 8px 16px;
+    background-color: #FFA500;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 120px;
+    
+    &:hover {
+        background-color: #FF8C00;
+    }
+
+    &:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+} 
