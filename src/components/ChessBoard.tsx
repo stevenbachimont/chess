@@ -120,24 +120,27 @@ const ChessBoard: React.FC = () => {
                 return;
             }
 
-            // Sauvegarder l'état actuel
+            // Sauvegarder l'état actuel dans l'historique
             setMoveHistory([...moveHistory, {
-                board: gameState.board.map(row => [...row]),
+                board: gameState.board,
                 turn: gameState.currentTurn,
-                hasMoved: { ...gameState.hasMoved }  // Sauvegarder aussi l'état des pièces qui ont bougé
+                hasMoved: gameState.hasMoved
             }]);
 
-            let moveNotation;
-            if (piece?.type === 'king' && Math.abs(position.x - selectedPiece.x) === 2) {
-                const isKingSide = position.x < selectedPiece.x;
-                moveNotation = `${piece.color === 'black' ? 'Noir' : 'Blanc'}: ${isKingSide ? 'Petit' : 'Grand'} roque`;
-            } else {
-                const from = `${letters[7 - selectedPiece.x]}${8 - selectedPiece.y}`;
-                const to = `${letters[7 - position.x]}${8 - position.y}`;
-                moveNotation = `${piece?.color === 'black' ? 'Noir' : 'Blanc'}: ${PIECE_NAMES_FR[piece?.type || 'pawn']} ${from} → ${to}`;
+            // Vérifier si une pièce est capturée
+            const capturedPiece = gameState.board[position.y][position.x];
+            const movingPiece = gameState.board[selectedPiece.y][selectedPiece.x]!;
+            
+            // Créer le message du coup avec la capture si elle existe
+            let moveText = `${gameState.currentTurn === 'white' ? 'Blanc' : 'Noir'}: ${
+                PIECE_NAMES_FR[movingPiece.type]
+            } ${letters[selectedPiece.x]}${8 - selectedPiece.y} → ${letters[position.x]}${8 - position.y}`;
+            
+            if (capturedPiece) {
+                moveText += `\n   capture ${PIECE_SYMBOLS[`${capturedPiece.color}-${capturedPiece.type}`]}`;
             }
-            console.log(moveNotation);
-            setMoves([...moves, moveNotation]);
+
+            setMoves([...moves, moveText]);
 
             // Mouvement valide : mise à jour du plateau
             const newBoard = [...gameState.board];
@@ -223,11 +226,13 @@ const ChessBoard: React.FC = () => {
 
     const isHighlighted = (pos: Position) => {
         if (guideStep >= 0) {
-            const guidedMove = getGuidedMove(guideStep);
-            if (guidedMove) {
-                if ((pos.x === guidedMove.from.x && pos.y === guidedMove.from.y) ||
-                    (pos.x === guidedMove.to.x && pos.y === guidedMove.to.y)) {
-                    return 'guide';
+            const guidedMoves = getGuidedMove(guideStep);
+            if (guidedMoves) {
+                for (const move of guidedMoves) {
+                    if ((pos.x === move.from.x && pos.y === move.from.y) ||
+                        (pos.x === move.to.x && pos.y === move.to.y)) {
+                        return 'guide';
+                    }
                 }
             }
         }
@@ -394,31 +399,58 @@ const ChessBoard: React.FC = () => {
 
     const toggleEasyMode = () => setEasyMode(!easyMode);
 
-    const getGuidedMove = (step: number): { from: Position; to: Position } | null => {
+    const getGuidedMove = (step: number): { from: Position; to: Position }[] | null => {
         if (!selectedOpening || !OPENINGS_GUIDE[selectedOpening]) return null;
         
         const currentStep = OPENINGS_GUIDE[selectedOpening].steps[step];
         if (!currentStep) return null;
 
-        // Extraire les coordonnées du texte du guide (e2 → e4)
-        const moveMatch = currentStep.match(/([a-h])([1-8]) → ([a-h])([1-8])/);
-        if (!moveMatch) return null;
-
-        const [_, fromFile, fromRank, toFile, toRank] = moveMatch;
+        // Extraire toutes les coordonnées du texte
+        const moves: { from: Position; to: Position }[] = [];
         
-        // Pour un plateau tourné de 90° dans le sens anti-horaire :
-        // - Le rang (1-8) devient la coordonnée y
-        // - La file (a-h) devient la coordonnée x inversée
-        return {
-            from: {
-                x: 7 - 'abcdefgh'.indexOf(fromFile),    // Inverser la file
-                y: 8 - parseInt(fromRank)               // Inverser le rang
-            },
-            to: {
-                x: 7 - 'abcdefgh'.indexOf(toFile),     // Inverser la file
-                y: 8 - parseInt(toRank)                // Inverser le rang
+        // Si c'est une étape avec des options, chercher dans les lignes suivantes
+        if (currentStep.includes('Options :')) {
+            const nextSteps = OPENINGS_GUIDE[selectedOpening].steps.slice(step + 1);
+            for (const option of nextSteps) {
+                // Arrêter si on trouve une ligne qui n'est pas une option
+                if (!option.startsWith('   -')) break;
+                
+                // Chercher tous les mouvements dans l'option
+                const optionMoves = [...option.matchAll(/([a-h])([1-8]) → ([a-h])([1-8])/g)];
+                for (const moveMatch of optionMoves) {
+                    const [_, fromFile, fromRank, toFile, toRank] = moveMatch;
+                    moves.push({
+                        from: {
+                            x: 7 - 'abcdefgh'.indexOf(fromFile),
+                            y: 8 - parseInt(fromRank)
+                        },
+                        to: {
+                            x: 7 - 'abcdefgh'.indexOf(toFile),
+                            y: 8 - parseInt(toRank)
+                        }
+                    });
+                }
             }
-        };
+            return moves.length > 0 ? moves : null;
+        }
+
+        // Pour les coups normaux
+        const moveMatches = currentStep.matchAll(/([a-h])([1-8]) → ([a-h])([1-8])/g);
+        for (const match of moveMatches) {
+            const [_, fromFile, fromRank, toFile, toRank] = match;
+            moves.push({
+                from: {
+                    x: 7 - 'abcdefgh'.indexOf(fromFile),
+                    y: 8 - parseInt(fromRank)
+                },
+                to: {
+                    x: 7 - 'abcdefgh'.indexOf(toFile),
+                    y: 8 - parseInt(toRank)
+                }
+            });
+        }
+
+        return moves.length > 0 ? moves : null;
     };
 
     const handleOpeningSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {

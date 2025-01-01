@@ -45,6 +45,13 @@
         &.black {
             color: #D32F2F;
         }
+        
+        white-space: pre-line;
+        line-height: 1.4;
+        
+        &.capture {
+            padding-left: 15px;
+        }
     }
 }
 

@@ -16,15 +16,15 @@
     "spanish": {
         "name": "Ouverture espagnole (Ruy Lopez)",
         "steps": [
-            "1. Blancs: Commencez par e2 → e4 pour contrôler le centre",
-            "1. Noirs: Répondez par e7 → e5 pour contester le centre",
-            "2. Blancs: Développez le cavalier en f3 (g1 → f3)",
-            "2. Noirs: Protégez e5 avec le cavalier en c6 (b8 → c6)",
-            "3. Blancs: Placez le fou en b5 (f1 → b5) pour attaquer le défenseur de e5",
-            "3. Noirs: Options de défense :",
-            "   - a6 pour chasser le fou (coup le plus joué)",
-            "   - Nd4 pour contre-attaquer",
-            "   - Bc5 pour développer activement"
+            "1. Blancs: Pion e2 → e4",
+            "1. Noirs: Pion e7 → e5",
+            "2. Blancs: Cavalier g1 → f3",
+            "2. Noirs: Cavalier b8 → c6",
+            "3. Blancs: Fou f1 → b5",
+            "3. Noirs: Options :",
+            "   - Pion a7 → a6 (coup le plus joué)",
+            "   - Cavalier g8 → f6 (défense active)",
+            "   - Fou f8 → c5 (développement actif)"
         ],
         "description": "L'une des ouvertures les plus sophistiquées, créant une tension positionnelle durable. Les blancs exercent une pression sur le pion e5 des noirs"
     }
