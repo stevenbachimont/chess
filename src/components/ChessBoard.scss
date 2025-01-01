@@ -94,6 +94,15 @@
                 background-color: rgba(255, 0, 0, 0.5) !important;
             }
         }
+        
+        &.highlighted-guide {
+            background-color: rgba(0, 100, 255, 0.5) !important;
+            box-shadow: 0 0 20px rgba(0, 100, 255, 0.5);
+            
+            &:hover {
+                background-color: rgba(0, 100, 255, 0.7) !important;
+            }
+        }
     }
 } 
 

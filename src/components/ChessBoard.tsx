@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GameState, Position, PIECE_SYMBOLS, PieceColor } from '../types/chess';
 import './ChessBoard.scss';
 import { initializeBoard, getPossibleMoves, isKingInCheck, getCheckPath } from '../utils/board';
+import openingsData from '../data/openings.json';
 
 const PIECE_NAMES_FR = {
     'pawn': 'Pion',
@@ -12,7 +13,7 @@ const PIECE_NAMES_FR = {
     'king': 'Roi'
 } as const;
 
-type OpeningKey = 'italian' | 'spanish' | 'sicilian';
+type OpeningKey = keyof typeof openingsData;
 
 const ChessBoard: React.FC = () => {
     const [gameState, setGameState] = useState<GameState>({
@@ -42,41 +43,9 @@ const ChessBoard: React.FC = () => {
     const [moves, setMoves] = useState<string[]>([]);
     const canUndo = moveHistory.length > 0;
     const [selectedOpening, setSelectedOpening] = useState<OpeningKey | ''>('');
+    const [guideStep, setGuideStep] = useState<number>(-1);
 
-    const OPENINGS_GUIDE: Record<OpeningKey, {
-        name: string;
-        steps: string[];
-        description: string;
-    }> = {
-        'italian': {
-            name: "Partie italienne",
-            steps: [
-                "1. e4 e5 (Avancez les pions centraux)",
-                "2. Nf3 (Développez le cavalier, attaquez e5)",
-                "3. Nc6 (Défendez e5 et développez une pièce)",
-                "4. Bc4 (Placez le fou sur la diagonale dangereuse)"
-            ],
-            description: "Une ouverture classique visant à contrôler le centre rapidement"
-        },
-        'spanish': {
-            name: "Partie espagnole (Ruy Lopez)",
-            steps: [
-                "1. e4 e5",
-                "2. Nf3 Nc6",
-                "3. Bb5 (Attaquez le défenseur de e5)"
-            ],
-            description: "L'une des ouvertures les plus populaires et sophistiquées"
-        },
-        'sicilian': {
-            name: "Défense sicilienne",
-            steps: [
-                "1. e4 c5 (Contre-attaquez immédiatement au centre)",
-                "2. Nf3 (Développez et contrôlez d4)",
-                "3. d6 ou Nc6 (Préparez-vous à contester le centre)"
-            ],
-            description: "Une défense agressive et complexe contre 1.e4"
-        }
-    };
+    const OPENINGS_GUIDE = openingsData;
 
     const canCastle = (kingPos: Position, rookPos: Position): boolean => {
         const king = gameState.board[kingPos.y][kingPos.x];
@@ -240,17 +209,36 @@ const ChessBoard: React.FC = () => {
             });
             setSelectedPiece(null);
             setPossibleMoves([]);
+
+            if (selectedOpening && guideStep >= 0) {
+                const nextStep = guideStep + 1;
+                if (nextStep < OPENINGS_GUIDE[selectedOpening].steps.length) {
+                    setGuideStep(nextStep);
+                } else {
+                    setGuideStep(-1); // Fin du guide
+                }
+            }
         }
     };
 
     const isHighlighted = (pos: Position) => {
-        return easyMode && possibleMoves.some(move => move.x === pos.x && move.y === pos.y);
+        if (guideStep >= 0) {
+            const guidedMove = getGuidedMove(guideStep);
+            if (guidedMove) {
+                if ((pos.x === guidedMove.from.x && pos.y === guidedMove.from.y) ||
+                    (pos.x === guidedMove.to.x && pos.y === guidedMove.to.y)) {
+                    return 'guide';
+                }
+            }
+        }
+        return easyMode && possibleMoves.some(move => move.x === pos.x && move.y === pos.y) ? 'possible' : false;
     };
 
     const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     const numbers = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
     const resetGame = () => {
+        // Réinitialiser l'état du jeu
         setGameState({
             board: initializeBoard(),
             currentTurn: 'white',
@@ -264,10 +252,17 @@ const ChessBoard: React.FC = () => {
                 blackRookRight: false,
             }
         });
+
+        // Réinitialiser tous les autres états
         setSelectedPiece(null);
         setPossibleMoves([]);
         setErrorMessage(null);
         setMoves([]);
+        setMoveHistory([]);
+        setCheckPath([]);
+        setCheckingPiece(null);
+        setSelectedOpening('');
+        setGuideStep(-1);
     };
 
     const undoLastMove = () => {
@@ -399,6 +394,39 @@ const ChessBoard: React.FC = () => {
 
     const toggleEasyMode = () => setEasyMode(!easyMode);
 
+    const getGuidedMove = (step: number): { from: Position; to: Position } | null => {
+        if (!selectedOpening || !OPENINGS_GUIDE[selectedOpening]) return null;
+        
+        const currentStep = OPENINGS_GUIDE[selectedOpening].steps[step];
+        if (!currentStep) return null;
+
+        // Extraire les coordonnées du texte du guide (e2 → e4)
+        const moveMatch = currentStep.match(/([a-h])([1-8]) → ([a-h])([1-8])/);
+        if (!moveMatch) return null;
+
+        const [_, fromFile, fromRank, toFile, toRank] = moveMatch;
+        
+        // Pour un plateau tourné de 90° dans le sens anti-horaire :
+        // - Le rang (1-8) devient la coordonnée y
+        // - La file (a-h) devient la coordonnée x inversée
+        return {
+            from: {
+                x: 7 - 'abcdefgh'.indexOf(fromFile),    // Inverser la file
+                y: 8 - parseInt(fromRank)               // Inverser le rang
+            },
+            to: {
+                x: 7 - 'abcdefgh'.indexOf(toFile),     // Inverser la file
+                y: 8 - parseInt(toRank)                // Inverser le rang
+            }
+        };
+    };
+
+    const handleOpeningSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const opening = e.target.value as OpeningKey | '';
+        setSelectedOpening(opening);
+        setGuideStep(opening ? 0 : -1);  // Démarrer le guide à l'étape 0 si une ouverture est sélectionnée
+    };
+
     return (
         <div className="chess-container">
             <div className="game-controls">
@@ -424,13 +452,19 @@ const ChessBoard: React.FC = () => {
                         <div className="opening-guide">
                             <select 
                                 value={selectedOpening} 
-                                onChange={(e) => setSelectedOpening(e.target.value as OpeningKey | '')}
+                                onChange={handleOpeningSelect}
                                 className="opening-select"
                             >
                                 <option value="">Choisir une ouverture...</option>
-                                <option value="italian">Partie italienne</option>
-                                <option value="spanish">Partie espagnole</option>
+                                <option value="italian">Ouverture italienne</option>
+                                <option value="spanish">Ouverture espagnole</option>
                                 <option value="sicilian">Défense sicilienne</option>
+                                <option value="french">Défense française</option>
+                                <option value="caro_kann">Défense Caro-Kann</option>
+                                <option value="kings_gambit">Gambit du Roi</option>
+                                <option value="queens_gambit">Gambit Dame</option>
+                                <option value="kings_indian">Défense indienne du roi</option>
+                                <option value="dutch">Défense hollandaise</option>
                             </select>
                             
                             {selectedOpening && OPENINGS_GUIDE[selectedOpening] && (
@@ -498,7 +532,8 @@ const ChessBoard: React.FC = () => {
                                     <div
                                         key={`${x}-${y}`}
                                         className={`square ${(x + y) % 2 === 0 ? 'light' : 'dark'} 
-                                            ${isHighlighted({x, y}) ? 'highlighted' : ''}
+                                            ${isHighlighted({x, y}) === 'guide' ? 'highlighted-guide' : ''}
+                                            ${isHighlighted({x, y}) === 'possible' ? 'highlighted' : ''}
                                             ${checkPath.some(pos => pos.x === x && pos.y === y) ? 'check-path' : ''}`}
                                         onClick={() => handleSquareClick({ x, y })}
                                     >
