@@ -128,11 +128,11 @@ const ChessBoard: React.FC = () => {
                 return;
             }
 
-            // Sauvegarder l'état actuel dans l'historique
+            // Sauvegarder l'état actuel dans l'historique avec une copie profonde
             setMoveHistory([...moveHistory, {
-                board: gameState.board,
+                board: gameState.board.map(row => row.map(piece => piece ? {...piece} : null)),
                 turn: gameState.currentTurn,
-                hasMoved: gameState.hasMoved
+                hasMoved: {...gameState.hasMoved}
             }]);
 
             // Vérifier si une pièce est capturée
@@ -279,24 +279,34 @@ const ChessBoard: React.FC = () => {
     };
 
     const undoLastMove = () => {
-        if (errorMessage === "Ce mouvement n'est pas autorisé !") {
-            setErrorMessage(null);
-            return;
-        }
+        if (moveHistory.length === 0) return;
 
-        if (moveHistory.length > 0) {
-            const lastMove = moveHistory[moveHistory.length - 1];
-            setGameState({
-                ...gameState,
-                board: lastMove.board,
-                currentTurn: lastMove.turn,
-                hasMoved: lastMove.hasMoved  // Restaurer l'état des pièces qui ont bougé
-            });
-            setMoveHistory(moveHistory.slice(0, -1));
-            setErrorMessage(null);
-            setCheckPath([]);
-            setCheckingPiece(null);
-            setMoves(moves.slice(0, -1));
+        const lastState = moveHistory[moveHistory.length - 1];
+        
+        // Restaurer l'état précédent avec une copie profonde des pièces
+        const newBoard = lastState.board.map(row => 
+            row.map(piece => piece ? {...piece} : null)
+        );
+        
+        setGameState({
+            board: newBoard,
+            currentTurn: lastState.turn,
+            gameStatus: 'active',
+            hasMoved: {...lastState.hasMoved}
+        });
+
+        // Mettre à jour les autres états
+        setMoveHistory(moveHistory.slice(0, -1));
+        setMoves(moves.slice(0, -1));
+        setSelectedPiece(null);
+        setPossibleMoves([]);
+        setErrorMessage(null);
+        setCheckPath([]);
+        setCheckingPiece(null);
+
+        // Si un guide est actif, reculer d'une étape
+        if (selectedOpening && guideStep > 0) {
+            setGuideStep(guideStep - 1);
         }
     };
 
