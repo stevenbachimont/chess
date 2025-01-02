@@ -11,7 +11,8 @@
             "   - Fou f8 → c5 (défense classique)",
             "   - Cavalier g8 → f6 (défense alternative)"
         ],
-        "description": "Une ouverture classique et agressive des blancs qui vise à contrôler rapidement le centre et à créer des menaces sur f7"
+        "description": "Une ouverture classique et agressive des blancs qui vise à contrôler rapidement le centre et à créer des menaces sur f7",
+        "movesDescription": "OVERTURE ITALIENNE, lorsque le fou se déplace en c4. Si le noir défend avec le fou en c5, le blanc peut continuer avec le pion en d3."
     },
     "spanish": {
         "name": "Ouverture espagnole (Ruy Lopez)",
@@ -26,6 +27,7 @@
             "   - Cavalier g8 → f6 (défense active)",
             "   - Fou f8 → c5 (développement actif)"
         ],
-        "description": "L'une des ouvertures les plus sophistiquées, créant une tension positionnelle durable. Les blancs exercent une pression sur le pion e5 des noirs"
+        "description": "L'une des ouvertures les plus sophistiquées, créant une tension positionnelle durable. Les blancs exercent une pression sur le pion e5 des noirs",
+        "movesDescription": "OUVERTURE ESPAGNOLE, lorsque le fou se déplace en b5. Si le noir défend avec le pion en a6, le blanc peut continuer avec le pion en b3."
     }
 } 
