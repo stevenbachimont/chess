@@ -25,9 +25,33 @@
             "3. Noirs: Options :",
             "   - Pion a7 → a6 (coup le plus joué)",
             "   - Cavalier g8 → f6 (défense active)",
-            "   - Fou f8 → c5 (développement actif)"
+            "   - Fou f8 → c5 (développement actif)",
+            "4. Blancs si a6: Options :",
+            "   - Fou b5 → a4 (variante principale)",
+            "   - Fou b5 → c4 (variante d'échange)",
+            "   - Pion b2 → b3 (variante fermée)"
         ],
         "description": "L'une des ouvertures les plus sophistiquées, créant une tension positionnelle durable. Les blancs exercent une pression sur le pion e5 des noirs",
-        "movesDescription": "OUVERTURE ESPAGNOLE, lorsque le fou se déplace en b5. Si le noir défend avec le pion en a6, le blanc peut continuer avec le pion en b3."
+        "movesDescription": "OUVERTURE ESPAGNOLE, lorsque le fou se déplace en b5. Si le noir défend avec le pion en a6, le blanc peut continuer avec le fou en a4 (variante principale) ou en c4 (variante d'échange)."
+    },
+    "kings_gambit": {
+        "name": "Gambit du Roi",
+        "steps": [
+            "1. Blancs: Pion e2 → e4",
+            "1. Noirs: Pion e7 → e5",
+            "2. Blancs: Pion f2 → f4",
+            "2. Noirs: Options :",
+            "   - Pion e5 → f4 (Gambit accepté)",
+            "   - Pion d7 → d6 (Gambit refusé)",
+            "   - Cavalier g8 → f6 (Contre-gambit)",
+            "3. Blancs si contre-gambit: Options :",
+            "   - Pion f4 → e5 (Attaque le cavalier)",
+            "   - Pion e4 → e5 (Protège f4)",
+            "3. Noirs après e5: Options :",
+            "   - Cavalier f6 → e4 (Attaque au centre)",
+            "   - Cavalier f6 → d5 (Position solide)"
+        ],
+        "description": "Un gambit très agressif où les blancs sacrifient un pion pour obtenir un développement rapide et des lignes ouvertes pour l'attaque",
+        "movesDescription": "GAMBIT DU ROI : Les blancs sacrifient le pion f pour ouvrir des lignes d'attaque. Si les noirs jouent Cf6, les blancs peuvent attaquer avec e5."
     }
 } 

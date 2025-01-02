@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { GameState, Position, PIECE_SYMBOLS, PieceColor } from '../types/chess';
 import './ChessBoard.scss';
 import { initializeBoard, getPossibleMoves, isKingInCheck, getCheckPath } from '../utils/board';
+import { getCurrentOpeningDescription, getGuidedMove } from '../utils/openings';
+import { resetGame, undoLastMove } from '../utils/gameActions';
 import openingsData from '../data/openings.json';
 
 const PIECE_NAMES_FR = {
@@ -44,8 +46,6 @@ const ChessBoard: React.FC = () => {
     const canUndo = moveHistory.length > 0;
     const [selectedOpening, setSelectedOpening] = useState<OpeningKey | ''>('');
     const [guideStep, setGuideStep] = useState<number>(-1);
-
-    const OPENINGS_GUIDE = openingsData;
 
     // Fonction utilitaire pour convertir les coordonnées (à ajouter en haut du composant)
     const convertCoordinates = (x: number, y: number) => {
@@ -223,7 +223,7 @@ const ChessBoard: React.FC = () => {
 
             if (selectedOpening && guideStep >= 0) {
                 const nextStep = guideStep + 1;
-                if (nextStep < OPENINGS_GUIDE[selectedOpening].steps.length) {
+                if (nextStep <= 5) {  // Limiter à 3 mouvements (6 étapes car chaque mouvement a 2 étapes)
                     setGuideStep(nextStep);
                 } else {
                     setGuideStep(-1); // Fin du guide
@@ -234,7 +234,7 @@ const ChessBoard: React.FC = () => {
 
     const isHighlighted = (pos: Position) => {
         if (guideStep >= 0) {
-            const guidedMoves = getGuidedMove(guideStep);
+            const guidedMoves = getGuidedMove(guideStep, selectedOpening, moves, setGuideStep);
             if (guidedMoves) {
                 for (const move of guidedMoves) {
                     if ((pos.x === move.from.x && pos.y === move.from.y) ||
@@ -250,182 +250,39 @@ const ChessBoard: React.FC = () => {
     const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     const numbers = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
-    const resetGame = () => {
-        // Réinitialiser l'état du jeu
-        setGameState({
-            board: initializeBoard(),
-            currentTurn: 'white',
-            gameStatus: 'active',
-            hasMoved: {
-                whiteKing: false,
-                blackKing: false,
-                whiteRookLeft: false,
-                whiteRookRight: false,
-                blackRookLeft: false,
-                blackRookRight: false,
-            }
+    const handleReset = () => {
+        resetGame({
+            setGameState,
+            setSelectedPiece,
+            setPossibleMoves,
+            setErrorMessage,
+            setMoves,
+            setMoveHistory,
+            setCheckPath,
+            setCheckingPiece,
+            setSelectedOpening,
+            setGuideStep
         });
-
-        // Réinitialiser tous les autres états
-        setSelectedPiece(null);
-        setPossibleMoves([]);
-        setErrorMessage(null);
-        setMoves([]);
-        setMoveHistory([]);
-        setCheckPath([]);
-        setCheckingPiece(null);
-        setSelectedOpening('');
-        setGuideStep(-1);
     };
 
-    const undoLastMove = () => {
-        if (moveHistory.length === 0) return;
-
-        const lastState = moveHistory[moveHistory.length - 1];
-        
-        // Restaurer l'état précédent avec une copie profonde des pièces
-        const newBoard = lastState.board.map(row => 
-            row.map(piece => piece ? {...piece} : null)
-        );
-        
-        setGameState({
-            board: newBoard,
-            currentTurn: lastState.turn,
-            gameStatus: 'active',
-            hasMoved: {...lastState.hasMoved}
+    const handleUndo = () => {
+        undoLastMove(moveHistory, moves, {
+            setGameState,
+            setMoveHistory,
+            setMoves,
+            setSelectedPiece,
+            setPossibleMoves,
+            setErrorMessage,
+            setCheckPath,
+            setCheckingPiece,
+            setGuideStep,
+            setSelectedOpening,
+            selectedOpening,
+            guideStep
         });
-
-        // Mettre à jour les autres états
-        setMoveHistory(moveHistory.slice(0, -1));
-        setMoves(moves.slice(0, -1));
-        setSelectedPiece(null);
-        setPossibleMoves([]);
-        setErrorMessage(null);
-        setCheckPath([]);
-        setCheckingPiece(null);
-
-        // Si un guide est actif, reculer d'une étape
-        if (selectedOpening && guideStep > 0) {
-            setGuideStep(guideStep - 1);
-        }
-    };
-
-    const getCurrentOpeningDescription = () => {
-        if (moves.length === 0) {
-            return "En attente du premier coup...";
-        }
-
-        const matchMove = (move: string | undefined, from: string, to: string) => {
-            if (!move) return false;
-            return move.includes(`${from} → ${to}`);
-        };
-
-        // Détection précoce de l'ouverture italienne (dès le 3ème coup)
-        if (moves.length >= 5) {
-            const isStartingItalian = 
-                (moves[0].includes('Blanc') && matchMove(moves[0], 'e2', 'e4')) &&
-                (moves[1].includes('Noir') && matchMove(moves[1], 'e7', 'e5')) &&
-                (moves[2].includes('Blanc') && matchMove(moves[2], 'g1', 'f3')) &&
-                (moves[3].includes('Noir') && matchMove(moves[3], 'b8', 'c6')) &&
-                (moves[4].includes('Blanc') && matchMove(moves[4], 'f1', 'c4'));
-
-            if (isStartingItalian) {
-                return OPENINGS_GUIDE.italian.movesDescription;
-            }
-        } else if (moves.length >= 3) {
-            // Vérification des 3 premiers coups pour une détection précoce
-            const potentialItalian = 
-                (moves[0].includes('Blanc') && matchMove(moves[0], 'e2', 'e4')) &&
-                (moves[1].includes('Noir') && matchMove(moves[1], 'e7', 'e5')) &&
-                (moves[2].includes('Blanc') && matchMove(moves[2], 'g1', 'f3'));
-
-            if (potentialItalian) {
-                return "Cette séquence pourrait mener à l'ouverture italienne si les prochains coups sont Cavalier en c6 suivi de Fou en c4";
-            }
-        }
-
-        // Même chose pour l'ouverture espagnole
-        if (moves.length >= 5) {
-            const isStartingSpanish = 
-                (moves[0].includes('Blanc') && matchMove(moves[0], 'e2', 'e4')) &&
-                (moves[1].includes('Noir') && matchMove(moves[1], 'e7', 'e5')) &&
-                (moves[2].includes('Blanc') && matchMove(moves[2], 'g1', 'f3')) &&
-                (moves[3].includes('Noir') && matchMove(moves[3], 'b8', 'c6')) &&
-                (moves[4].includes('Blanc') && matchMove(moves[4], 'f1', 'b5'));
-
-            if (isStartingSpanish) {
-                return OPENINGS_GUIDE.spanish.movesDescription;
-            }
-        } else if (moves.length >= 3) {
-            const potentialSpanish = 
-                (moves[0].includes('Blanc') && matchMove(moves[0], 'e2', 'e4')) &&
-                (moves[1].includes('Noir') && matchMove(moves[1], 'e7', 'e5')) &&
-                (moves[2].includes('Blanc') && matchMove(moves[2], 'g1', 'f3'));
-
-            if (potentialSpanish) {
-                return "Cette séquence pourrait mener à l'ouverture espagnole si les prochains coups sont Cavalier en c6 suivi de Fou en b5";
-            }
-        }
-
-
-        return "Ouverture non reconnue";
     };
 
     const toggleEasyMode = () => setEasyMode(!easyMode);
-
-    const getGuidedMove = (step: number): { from: Position; to: Position }[] | null => {
-        if (!selectedOpening || !OPENINGS_GUIDE[selectedOpening]) return null;
-        
-        const currentStep = OPENINGS_GUIDE[selectedOpening].steps[step];
-        if (!currentStep) return null;
-
-        // Extraire toutes les coordonnées du texte
-        const moves: { from: Position; to: Position }[] = [];
-        
-        // Si c'est une étape avec des options, chercher dans les lignes suivantes
-        if (currentStep.includes('Options :')) {
-            const nextSteps = OPENINGS_GUIDE[selectedOpening].steps.slice(step + 1);
-            for (const option of nextSteps) {
-                // Arrêter si on trouve une ligne qui n'est pas une option
-                if (!option.startsWith('   -')) break;
-                
-                // Chercher tous les mouvements dans l'option
-                const optionMoves = [...option.matchAll(/([a-h])([1-8]) → ([a-h])([1-8])/g)];
-                for (const moveMatch of optionMoves) {
-                    const [_, fromFile, fromRank, toFile, toRank] = moveMatch;
-                    moves.push({
-                        from: {
-                            x: 7 - 'abcdefgh'.indexOf(fromFile),
-                            y: 8 - parseInt(fromRank)
-                        },
-                        to: {
-                            x: 7 - 'abcdefgh'.indexOf(toFile),
-                            y: 8 - parseInt(toRank)
-                        }
-                    });
-                }
-            }
-            return moves.length > 0 ? moves : null;
-        }
-
-        // Pour les coups normaux
-        const moveMatches = currentStep.matchAll(/([a-h])([1-8]) → ([a-h])([1-8])/g);
-        for (const match of moveMatches) {
-            const [_, fromFile, fromRank, toFile, toRank] = match;
-            moves.push({
-                from: {
-                    x: 7 - 'abcdefgh'.indexOf(fromFile),
-                    y: 8 - parseInt(fromRank)
-                },
-                to: {
-                    x: 7 - 'abcdefgh'.indexOf(toFile),
-                    y: 8 - parseInt(toRank)
-                }
-            });
-        }
-
-        return moves.length > 0 ? moves : null;
-    };
 
     const handleOpeningSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const opening = e.target.value as OpeningKey | '';
@@ -436,10 +293,10 @@ const ChessBoard: React.FC = () => {
     return (
         <div className="chess-container">
             <div className="game-controls">
-                <button className="reset-button" onClick={resetGame}>
+                <button className="reset-button" onClick={handleReset}>
                     Nouvelle partie
                 </button>
-                <button className="undo-button" onClick={undoLastMove} disabled={!canUndo}>
+                <button className="undo-button" onClick={handleUndo} disabled={!canUndo}>
                     Annuler coup
                 </button>
                 <button className="easy-mode-button" onClick={toggleEasyMode}>
@@ -451,7 +308,7 @@ const ChessBoard: React.FC = () => {
                         <div className="moves-description">
                             <h4>Description des coups</h4>
                             <div className="description">
-                                {getCurrentOpeningDescription()}
+                                {getCurrentOpeningDescription(moves)}
                             </div>
                         </div>
 
@@ -473,12 +330,12 @@ const ChessBoard: React.FC = () => {
                                 <option value="dutch">Défense hollandaise</option>
                             </select>
                             
-                            {selectedOpening && OPENINGS_GUIDE[selectedOpening] && (
+                            {selectedOpening && openingsData[selectedOpening] && (
                                 <div className="opening-steps">
-                                    <h4>{OPENINGS_GUIDE[selectedOpening].name}</h4>
-                                    <p className="description">{OPENINGS_GUIDE[selectedOpening].description}</p>
+                                    <h4>{openingsData[selectedOpening].name}</h4>
+                                    <p className="description">{openingsData[selectedOpening].description}</p>
                                     <ul>
-                                        {OPENINGS_GUIDE[selectedOpening].steps.map((step, index) => (
+                                        {openingsData[selectedOpening].steps.map((step, index) => (
                                             <li key={index}>{step}</li>
                                         ))}
                                     </ul>
