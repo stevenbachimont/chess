@@ -53,5 +53,23 @@
         ],
         "description": "Un gambit très agressif où les blancs sacrifient un pion pour obtenir un développement rapide et des lignes ouvertes pour l'attaque",
         "movesDescription": "GAMBIT DU ROI : Les blancs sacrifient le pion f pour ouvrir des lignes d'attaque. Si les noirs jouent Cf6, les blancs peuvent attaquer avec e5."
+    },
+    "queens_gambit": {
+        "name": "Gambit de la Dame",
+        "steps": [
+            "1. Blancs: Pion d2 → d4",
+            "1. Noirs: Pion d7 → d5",
+            "2. Blancs: Pion c2 → c4",
+            "2. Noirs: Options :",
+            "   - Pion d5 → c4 (Gambit accepté)",
+            "   - Pion e7 → e6 (Gambit refusé)",
+            "   - Pion c7 → c6 (Défense slave)",
+            "3. Blancs si c4: Options :",
+            "   - Pion e2 → e3 (Variante classique)",
+            "   - Cavalier b1 → c3 (Variante principale)",
+            "   - Pion e2 → e4 (Variante symétrique)"
+        ],
+        "description": "Une ouverture stratégique où les blancs sacrifient un pion du centre pour obtenir un avantage de développement et le contrôle du centre",
+        "movesDescription": "GAMBIT DE LA DAME : Les blancs proposent le sacrifice d'un pion central pour obtenir une meilleure position et le contrôle du centre. Les noirs peuvent accepter le gambit en prenant le pion en c4, ou le refuser avec e6 ou c6."
     }
 } 

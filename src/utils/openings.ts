@@ -41,6 +41,17 @@ const detectKingsGambit = (moves: string[]) => {
     return false;
 };
 
+const detectQueensGambit = (moves: string[]) => {
+    if (moves.length >= 3) {
+        return (
+            matchMove(moves[0], 'd2', 'd4') &&
+            matchMove(moves[1], 'd7', 'd5') &&
+            matchMove(moves[2], 'c2', 'c4')
+        );
+    }
+    return false;
+};
+
 export const matchMove = (move: string | undefined, from: string, to: string) => {
     if (!move) return false;
     return move.includes(`${from} → ${to}`);
@@ -64,6 +75,11 @@ export const getCurrentOpeningDescription = (moves: string[]) => {
     // Détection du gambit du roi
     if (detectKingsGambit(moves)) {
         return openingsData.kings_gambit.movesDescription;
+    }
+
+    // Détection du gambit de la dame
+    if (detectQueensGambit(moves)) {
+        return openingsData.queens_gambit.movesDescription;
     }
 
     return "Ouverture non reconnue";
