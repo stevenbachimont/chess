@@ -47,7 +47,8 @@ export const resetGame = (setters: ResetGameParams) => {
             whiteRookRight: false,
             blackRookLeft: false,
             blackRookRight: false,
-        }
+        },
+        enPassantTarget: null
     });
     
     setters.setSelectedPiece(null);
@@ -74,7 +75,8 @@ export const undoLastMove = (
         board: lastState.board.map(row => row.map(piece => piece ? {...piece} : null)),
         currentTurn: lastState.turn,
         gameStatus: 'active',
-        hasMoved: {...lastState.hasMoved}
+        hasMoved: {...lastState.hasMoved},
+        enPassantTarget: null
     });
 
     setters.setMoveHistory(moveHistory.slice(0, -1));

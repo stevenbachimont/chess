@@ -447,17 +447,6 @@ const ChessBoard: React.FC = () => {
                         </div>
                     </>
                 )}
-                <div className="moves-list">
-                    <h3>Liste des coups</h3>
-                    {moves.map((move, index) => (
-                        <div 
-                            key={index} 
-                            className={`move ${move.startsWith('Blanc') ? 'white' : 'black'}`}
-                        >
-                            {move}
-                        </div>
-                    ))}
-                </div>
             </div>
 
             <div className="game-area">
@@ -526,62 +515,77 @@ const ChessBoard: React.FC = () => {
                         </div>
                     ))}
                 </div>
+                <div className="game-buttons">
+                    <button className="reset-button" onClick={handleReset}>
+                        Nouvelle partie
+                    </button>
+                    <button className="undo-button" onClick={handleUndo} disabled={!canUndo}>
+                        Annuler coup
+                    </button>
+                    <button className="easy-mode-button" onClick={toggleEasyMode}>
+                        {easyMode ? 'Sans assistance' : 'Avec assistance'}
+                    </button>
+                </div>
             </div>
 
             <div className="right-controls">
-                <div className="timer-control">
-                    <select 
-                        className="time-select"
-                        value={selectedTime}
-                        onChange={(e) => setSelectedTime(Number(e.target.value))}
-                        disabled={isTimerRunning}
-                    >
-                        {DEFAULT_TIME_OPTIONS.map(option => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                    <div className="timer-display">
-                        <div className="timer-item">
-                            <div className="timer-label">Blancs</div>
-                            <div className={`timer-value white ${timeControl.white < 30 ? 'low-time' : ''}`}>
-                                {formatTime(timeControl.white)}
+                <div className="timer-score-container">
+                    <div className="timer-control">
+                        <select 
+                            className="time-select"
+                            value={selectedTime}
+                            onChange={(e) => setSelectedTime(Number(e.target.value))}
+                            disabled={isTimerRunning}
+                        >
+                            {DEFAULT_TIME_OPTIONS.map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="timer-display">
+                            <div className="timer-item">
+                                <div className="timer-label">Blancs</div>
+                                <div className={`timer-value white ${timeControl.white < 30 ? 'low-time' : ''}`}>
+                                    {formatTime(timeControl.white)}
+                                </div>
+                            </div>
+                            <div className="timer-item">
+                                <div className="timer-label">Noirs</div>
+                                <div className={`timer-value black ${timeControl.black < 30 ? 'low-time' : ''}`}>
+                                    {formatTime(timeControl.black)}
+                                </div>
                             </div>
                         </div>
-                        <div className="timer-item">
-                            <div className="timer-label">Noirs</div>
-                            <div className={`timer-value black ${timeControl.black < 30 ? 'low-time' : ''}`}>
-                                {formatTime(timeControl.black)}
-                            </div>
+                        <button 
+                            className={`start-timer-button ${isTimerRunning ? 'running' : ''}`}
+                            onClick={() => setIsTimerRunning(!isTimerRunning)}
+                        >
+                            {isTimerRunning ? 'Pause' : 'Démarrer'}
+                        </button>
+                    </div>
+                    <div className="score-display">
+                        <div className="score-item">
+                            <div className="score-label">Blancs</div>
+                            <div className="score-value white">{score.white}</div>
+                        </div>
+                        <div className="score-item">
+                            <div className="score-label">Noirs</div>
+                            <div className="score-value black">{score.black}</div>
                         </div>
                     </div>
-                    <button 
-                        className={`start-timer-button ${isTimerRunning ? 'running' : ''}`}
-                        onClick={() => setIsTimerRunning(!isTimerRunning)}
-                    >
-                        {isTimerRunning ? 'Pause' : 'Démarrer'}
-                    </button>
                 </div>
-                <div className="score-display">
-                    <div className="score-item">
-                        <div className="score-label">Blancs</div>
-                        <div className="score-value white">{score.white}</div>
-                    </div>
-                    <div className="score-item">
-                        <div className="score-label">Noirs</div>
-                        <div className="score-value black">{score.black}</div>
-                    </div>
+                <div className="moves-list">
+                    <h3>Liste des coups</h3>
+                    {moves.map((move, index) => (
+                        <div 
+                            key={index} 
+                            className={`move ${move.startsWith('Blanc') ? 'white' : 'black'}`}
+                        >
+                            {move}
+                        </div>
+                    ))}
                 </div>
-                <button className="reset-button" onClick={handleReset}>
-                    Nouvelle partie
-                </button>
-                <button className="undo-button" onClick={handleUndo} disabled={!canUndo}>
-                    Annuler coup
-                </button>
-                <button className="easy-mode-button" onClick={toggleEasyMode}>
-                    {easyMode ? 'Mode normal' : 'Mode facile'}
-                </button>
             </div>
         </div>
     );
