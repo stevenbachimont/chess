@@ -73,6 +73,8 @@ const ChessBoard: React.FC = () => {
     });
     const [isTimerRunning, setIsTimerRunning] = useState(false);
     const [selectedTime, setSelectedTime] = useState(300);
+    const [promotionPosition, setPromotionPosition] = useState<Position | null>(null);
+    const [promotionColor, setPromotionColor] = useState<PieceColor | null>(null);
 
     // Ajouter l'effet pour gérer le décompte du temps
     useEffect(() => {
@@ -314,6 +316,12 @@ const ChessBoard: React.FC = () => {
                     [gameState.currentTurn]: prev[gameState.currentTurn] + timeControl.increment
                 }));
             }
+
+            if (piece?.type === 'pawn' && (position.y === 0 || position.y === 7)) {
+                setPromotionPosition(position);
+                setPromotionColor(piece.color);
+                return;
+            }
         }
     };
 
@@ -401,6 +409,24 @@ const ChessBoard: React.FC = () => {
         const minutes = Math.floor(seconds / 60);
         const remainingSeconds = seconds % 60;
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
+    const handlePromotion = (pieceType: 'queen' | 'rook' | 'bishop' | 'knight') => {
+        if (!promotionPosition || !promotionColor) return;
+
+        const newBoard = [...gameState.board];
+        newBoard[promotionPosition.y][promotionPosition.x] = {
+            type: pieceType,
+            color: promotionColor
+        };
+
+        setGameState({
+            ...gameState,
+            board: newBoard
+        });
+
+        setPromotionPosition(null);
+        setPromotionColor(null);
     };
 
     return (
@@ -587,6 +613,38 @@ const ChessBoard: React.FC = () => {
                     ))}
                 </div>
             </div>
+
+            {promotionPosition && promotionColor && (
+                <div className="promotion-dialog">
+                    <h3>Choisissez une pièce pour la promotion</h3>
+                    <div className="promotion-options">
+                        <div 
+                            className="promotion-piece" 
+                            onClick={() => handlePromotion('queen')}
+                        >
+                            {PIECE_SYMBOLS[`${promotionColor}-queen`]}
+                        </div>
+                        <div 
+                            className="promotion-piece" 
+                            onClick={() => handlePromotion('rook')}
+                        >
+                            {PIECE_SYMBOLS[`${promotionColor}-rook`]}
+                        </div>
+                        <div 
+                            className="promotion-piece" 
+                            onClick={() => handlePromotion('bishop')}
+                        >
+                            {PIECE_SYMBOLS[`${promotionColor}-bishop`]}
+                        </div>
+                        <div 
+                            className="promotion-piece" 
+                            onClick={() => handlePromotion('knight')}
+                        >
+                            {PIECE_SYMBOLS[`${promotionColor}-knight`]}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
