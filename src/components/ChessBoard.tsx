@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameState, Position, PIECE_SYMBOLS, PieceColor } from '../types/chess';
 import './ChessBoard.scss';
 import { initializeBoard, getPossibleMoves, isKingInCheck, getCheckPath } from '../utils/board';
 import { getCurrentOpeningDescription, getGuidedMove } from '../utils/openings';
 import { resetGame, undoLastMove } from '../utils/gameActions';
+import { OpeningKey } from '../types/openings';
 import openingsData from '../data/openings.json';
 
 const PIECE_NAMES_FR = {
@@ -15,7 +16,21 @@ const PIECE_NAMES_FR = {
     'king': 'Roi'
 } as const;
 
-type OpeningKey = keyof typeof openingsData;
+const PIECE_VALUES = {
+    'pawn': 1,
+    'knight': 3,
+    'bishop': 3,
+    'rook': 5,
+    'queen': 9,
+    'king': 0
+} as const;
+
+const DEFAULT_TIME_OPTIONS = [
+    { label: '1 min', value: 60 },
+    { label: '3 min', value: 180 },
+    { label: '5 min', value: 300 },
+    { label: '10 min', value: 600 }
+] as const;
 
 const ChessBoard: React.FC = () => {
     const [gameState, setGameState] = useState<GameState>({
@@ -29,7 +44,8 @@ const ChessBoard: React.FC = () => {
             whiteRookRight: false,
             blackRookLeft: false,
             blackRookRight: false,
-        }
+        },
+        enPassantTarget: null
     });
     const [selectedPiece, setSelectedPiece] = useState<Position | null>(null);
     const [easyMode, setEasyMode] = useState(false);
@@ -46,6 +62,37 @@ const ChessBoard: React.FC = () => {
     const canUndo = moveHistory.length > 0;
     const [selectedOpening, setSelectedOpening] = useState<OpeningKey | ''>('');
     const [guideStep, setGuideStep] = useState<number>(-1);
+    const [score, setScore] = useState({
+        white: 0,
+        black: 0
+    });
+    const [timeControl, setTimeControl] = useState({
+        white: 300, // 5 minutes par défaut
+        black: 300,
+        increment: 2 // 2 secondes d'incrément
+    });
+    const [isTimerRunning, setIsTimerRunning] = useState(false);
+    const [selectedTime, setSelectedTime] = useState(300);
+
+    // Ajouter l'effet pour gérer le décompte du temps
+    useEffect(() => {
+        let interval: number;
+        if (isTimerRunning) {
+            interval = setInterval(() => {
+                setTimeControl(prev => ({
+                    ...prev,
+                    [gameState.currentTurn]: Math.max(0, prev[gameState.currentTurn] - 1)
+                }));
+                
+                // Vérifier si le temps est écoulé
+                if (timeControl[gameState.currentTurn] <= 0) {
+                    setErrorMessage(`Temps écoulé ! Les ${gameState.currentTurn === 'white' ? 'noirs' : 'blancs'} gagnent !`);
+                    setIsTimerRunning(false);
+                }
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [isTimerRunning, gameState.currentTurn]);
 
     // Fonction utilitaire pour convertir les coordonnées (à ajouter en haut du composant)
     const convertCoordinates = (x: number, y: number) => {
@@ -90,7 +137,7 @@ const ChessBoard: React.FC = () => {
             const piece = gameState.board[position.y][position.x];
             if (piece && piece.color === gameState.currentTurn) {
                 setSelectedPiece(position);
-                let moves = getPossibleMoves(gameState.board, position);
+                let moves = getPossibleMoves(gameState.board, position, gameState);
 
                 // Si c'est un roi sur sa case initiale, ajouter les mouvements de roque possibles
                 if (piece.type === 'king' && position.x === 3) {
@@ -139,21 +186,50 @@ const ChessBoard: React.FC = () => {
             const capturedPiece = gameState.board[position.y][position.x];
             const movingPiece = gameState.board[selectedPiece.y][selectedPiece.x]!;
             
+            // Mouvement valide : mise à jour du plateau
+            const newBoard = [...gameState.board];
+            const newHasMoved = { ...gameState.hasMoved };
+            let enPassantTarget: Position | null = null;
+
             // Créer le message du coup avec la capture si elle existe
             let moveText = `${gameState.currentTurn === 'white' ? 'Blanc' : 'Noir'}: ${
                 PIECE_NAMES_FR[movingPiece.type]
             } ${convertCoordinates(selectedPiece.x, selectedPiece.y)} → ${convertCoordinates(position.x, position.y)}`;
             
-            if (capturedPiece) {
+            // Si c'est une prise en passant
+            if (piece?.type === 'pawn' && 
+                position.x !== selectedPiece.x && 
+                !gameState.board[position.y][position.x] &&
+                gameState.enPassantTarget &&
+                position.x === gameState.enPassantTarget.x &&
+                position.y === gameState.enPassantTarget.y) {
+                // Supprimer le pion capturé
+                newBoard[selectedPiece.y][position.x] = null;
+                moveText += `\n   capture en passant ${PIECE_SYMBOLS[`${gameState.currentTurn === 'white' ? 'black' : 'white'}-pawn`]}`;
+                
+                // Ajouter le point pour la capture
+                setScore(prevScore => ({
+                    ...prevScore,
+                    [gameState.currentTurn]: prevScore[gameState.currentTurn] + PIECE_VALUES['pawn']
+                }));
+            } else if (capturedPiece) {
                 moveText += `\n   capture ${PIECE_SYMBOLS[`${capturedPiece.color}-${capturedPiece.type}`]}`;
+                setScore(prevScore => ({
+                    ...prevScore,
+                    [gameState.currentTurn]: prevScore[gameState.currentTurn] + PIECE_VALUES[capturedPiece.type]
+                }));
             }
 
             setMoves([...moves, moveText]);
 
-            // Mouvement valide : mise à jour du plateau
-            const newBoard = [...gameState.board];
-            const newHasMoved = { ...gameState.hasMoved };
-            
+            // Détecter si c'est un pion qui avance de deux cases
+            if (piece?.type === 'pawn' && Math.abs(position.y - selectedPiece.y) === 2) {
+                enPassantTarget = {
+                    x: position.x,
+                    y: (position.y + selectedPiece.y) / 2
+                };
+            }
+
             // Déplacer la déclaration de nextTurn avant son utilisation
             const nextTurn = gameState.currentTurn === 'white' ? 'black' : 'white';
 
@@ -216,7 +292,8 @@ const ChessBoard: React.FC = () => {
                 ...gameState,
                 board: newBoard,
                 currentTurn: nextTurn,
-                hasMoved: newHasMoved
+                hasMoved: newHasMoved,
+                enPassantTarget: enPassantTarget
             });
             setSelectedPiece(null);
             setPossibleMoves([]);
@@ -228,6 +305,14 @@ const ChessBoard: React.FC = () => {
                 } else {
                     setGuideStep(-1); // Fin du guide
                 }
+            }
+
+            // Après un coup valide, ajouter l'incrément
+            if (isTimerRunning) {
+                setTimeControl(prev => ({
+                    ...prev,
+                    [gameState.currentTurn]: prev[gameState.currentTurn] + timeControl.increment
+                }));
             }
         }
     };
@@ -263,9 +348,30 @@ const ChessBoard: React.FC = () => {
             setSelectedOpening,
             setGuideStep
         });
+        setScore({ white: 0, black: 0 });
+        setTimeControl({
+            white: selectedTime,
+            black: selectedTime,
+            increment: 2
+        });
+        setIsTimerRunning(false);
     };
 
     const handleUndo = () => {
+        const lastMove = moves[moves.length - 1];
+        if (lastMove && lastMove.includes('capture')) {
+            const captureColor = lastMove.startsWith('Blanc') ? 'white' : 'black';
+            const capturedPieceType = lastMove.split('capture ')[1];
+            const pieceType = Object.entries(PIECE_SYMBOLS).find(([_, symbol]) => symbol === capturedPieceType)?.[0].split('-')[1] as keyof typeof PIECE_VALUES;
+            
+            if (pieceType) {
+                setScore(prevScore => ({
+                    ...prevScore,
+                    [captureColor]: prevScore[captureColor] - PIECE_VALUES[pieceType]
+                }));
+            }
+        }
+
         undoLastMove(moveHistory, moves, {
             setGameState,
             setMoveHistory,
@@ -290,19 +396,16 @@ const ChessBoard: React.FC = () => {
         setGuideStep(opening ? 0 : -1);  // Démarrer le guide à l'étape 0 si une ouverture est sélectionnée
     };
 
+    // Ajouter la fonction pour formater le temps
+    const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
     return (
         <div className="chess-container">
-            <div className="game-controls">
-                <button className="reset-button" onClick={handleReset}>
-                    Nouvelle partie
-                </button>
-                <button className="undo-button" onClick={handleUndo} disabled={!canUndo}>
-                    Annuler coup
-                </button>
-                <button className="easy-mode-button" onClick={toggleEasyMode}>
-                    {easyMode ? 'Mode normal' : 'Mode facile'}
-                </button>
-                
+            <div className="left-controls">
                 {easyMode && (
                     <>
                         <div className="moves-description">
@@ -344,7 +447,19 @@ const ChessBoard: React.FC = () => {
                         </div>
                     </>
                 )}
+                <div className="moves-list">
+                    <h3>Liste des coups</h3>
+                    {moves.map((move, index) => (
+                        <div 
+                            key={index} 
+                            className={`move ${move.startsWith('Blanc') ? 'white' : 'black'}`}
+                        >
+                            {move}
+                        </div>
+                    ))}
+                </div>
             </div>
+
             <div className="game-area">
                 {errorMessage && (
                     <div 
@@ -412,16 +527,61 @@ const ChessBoard: React.FC = () => {
                     ))}
                 </div>
             </div>
-            <div className="moves-list">
-                <h3>Liste des coups</h3>
-                {moves.map((move, index) => (
-                    <div 
-                        key={index} 
-                        className={`move ${move.startsWith('Blanc') ? 'white' : 'black'}`}
+
+            <div className="right-controls">
+                <div className="timer-control">
+                    <select 
+                        className="time-select"
+                        value={selectedTime}
+                        onChange={(e) => setSelectedTime(Number(e.target.value))}
+                        disabled={isTimerRunning}
                     >
-                        {move}
+                        {DEFAULT_TIME_OPTIONS.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                    <div className="timer-display">
+                        <div className="timer-item">
+                            <div className="timer-label">Blancs</div>
+                            <div className={`timer-value white ${timeControl.white < 30 ? 'low-time' : ''}`}>
+                                {formatTime(timeControl.white)}
+                            </div>
+                        </div>
+                        <div className="timer-item">
+                            <div className="timer-label">Noirs</div>
+                            <div className={`timer-value black ${timeControl.black < 30 ? 'low-time' : ''}`}>
+                                {formatTime(timeControl.black)}
+                            </div>
+                        </div>
                     </div>
-                ))}
+                    <button 
+                        className={`start-timer-button ${isTimerRunning ? 'running' : ''}`}
+                        onClick={() => setIsTimerRunning(!isTimerRunning)}
+                    >
+                        {isTimerRunning ? 'Pause' : 'Démarrer'}
+                    </button>
+                </div>
+                <div className="score-display">
+                    <div className="score-item">
+                        <div className="score-label">Blancs</div>
+                        <div className="score-value white">{score.white}</div>
+                    </div>
+                    <div className="score-item">
+                        <div className="score-label">Noirs</div>
+                        <div className="score-value black">{score.black}</div>
+                    </div>
+                </div>
+                <button className="reset-button" onClick={handleReset}>
+                    Nouvelle partie
+                </button>
+                <button className="undo-button" onClick={handleUndo} disabled={!canUndo}>
+                    Annuler coup
+                </button>
+                <button className="easy-mode-button" onClick={toggleEasyMode}>
+                    {easyMode ? 'Mode normal' : 'Mode facile'}
+                </button>
             </div>
         </div>
     );

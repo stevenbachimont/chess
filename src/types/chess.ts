@@ -10,14 +10,15 @@ export interface GameState {
     board: (Piece | null)[][];
     currentTurn: PieceColor;
     gameStatus: 'active' | 'check' | 'checkmate' | 'stalemate';
-    hasMoved?: {
-        whiteKing?: boolean;
-        blackKing?: boolean;
-        whiteRookLeft?: boolean;
-        whiteRookRight?: boolean;
-        blackRookLeft?: boolean;
-        blackRookRight?: boolean;
+    hasMoved: {
+        whiteKing: boolean;
+        blackKing: boolean;
+        whiteRookLeft: boolean;
+        whiteRookRight: boolean;
+        blackRookLeft: boolean;
+        blackRookRight: boolean;
     };
+    enPassantTarget: Position | null;
 }
 
 export const PIECE_SYMBOLS = {

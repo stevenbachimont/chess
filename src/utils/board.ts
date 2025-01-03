@@ -1,4 +1,4 @@
-import { Piece, Position, PieceType, PieceColor } from '../types/chess';
+import { Piece, Position, PieceType, PieceColor, GameState } from '../types/chess';
 
 export const initializeBoard = (): (Piece | null)[][] => {
     const board: (Piece | null)[][] = Array(8).fill(null).map(() => Array(8).fill(null));
@@ -21,7 +21,7 @@ export const initializeBoard = (): (Piece | null)[][] => {
     return board;
 };
 
-export const getPossibleMoves = (board: (Piece | null)[][], position: Position, checkForCheck: boolean = true): Position[] => {
+export const getPossibleMoves = (board: (Piece | null)[][], position: Position, gameState?: GameState, checkForCheck: boolean = true): Position[] => {
     const piece = board[position.y][position.x];
     if (!piece) return [];
 
@@ -61,6 +61,17 @@ export const getPossibleMoves = (board: (Piece | null)[][], position: Position, 
                     moves.push({ x: newX, y: newY });
                 }
             });
+
+            // Ajouter la prise en passant
+            if (gameState?.enPassantTarget) {
+                if (position.y === (piece.color === 'white' ? 3 : 4)) {
+                    // Vérifier si le pion peut prendre en passant à gauche ou à droite
+                    if (Math.abs(gameState.enPassantTarget.x - position.x) === 1 &&
+                        gameState.enPassantTarget.y === position.y + direction) {
+                        moves.push(gameState.enPassantTarget);
+                    }
+                }
+            }
             break;
         }
 
@@ -177,7 +188,7 @@ export const isKingInCheck = (board: (Piece | null)[][], kingColor: PieceColor):
             const piece = board[y][x];
             if (piece && piece.color !== kingColor) {
                 // Passer false pour éviter la récursion
-                const moves = getPossibleMoves(board, { x, y }, false);
+                const moves = getPossibleMoves(board, { x, y }, undefined, false);
                 if (moves.some(move => move.x === kingPosition!.x && move.y === kingPosition!.y)) {
                     return { x, y };
                 }

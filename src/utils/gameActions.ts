@@ -1,9 +1,9 @@
 import { GameState, Position } from '../types/chess';
 import { initializeBoard } from './board';
 import { MoveHistoryItem } from '../types/game';
-import { Dispatch, SetStateAction } from 'react';
+import { OpeningKey } from '../types/openings';
 
-export const resetGame = (setters: {
+interface ResetGameParams {
     setGameState: (state: GameState) => void;
     setSelectedPiece: (piece: Position | null) => void;
     setPossibleMoves: (moves: Position[]) => void;
@@ -12,9 +12,30 @@ export const resetGame = (setters: {
     setMoveHistory: (history: any[]) => void;
     setCheckPath: (path: Position[]) => void;
     setCheckingPiece: (piece: Position | null) => void;
-    setSelectedOpening: Dispatch<SetStateAction<"" | "italian" | "spanish" | "kings_gambit">>;
+    setSelectedOpening: React.Dispatch<React.SetStateAction<OpeningKey>>;
     setGuideStep: (step: number) => void;
-}) => {
+}
+
+interface UndoLastMoveParams {
+    moveHistory: MoveHistoryItem[];
+    moves: string[];
+    setters: {
+        setGameState: (state: GameState) => void;
+        setMoveHistory: (history: MoveHistoryItem[]) => void;
+        setMoves: (moves: string[]) => void;
+        setSelectedPiece: (piece: Position | null) => void;
+        setPossibleMoves: (moves: Position[]) => void;
+        setErrorMessage: (msg: string | null) => void;
+        setCheckPath: (path: Position[]) => void;
+        setCheckingPiece: (piece: Position | null) => void;
+        setGuideStep: (step: number) => void;
+        setSelectedOpening: React.Dispatch<React.SetStateAction<OpeningKey>>;
+        selectedOpening: OpeningKey;
+        guideStep: number;
+    };
+}
+
+export const resetGame = (setters: ResetGameParams) => {
     setters.setGameState({
         board: initializeBoard(),
         currentTurn: 'white',
@@ -43,20 +64,7 @@ export const resetGame = (setters: {
 export const undoLastMove = (
     moveHistory: MoveHistoryItem[],
     moves: string[],
-    setters: {
-        setGameState: (state: GameState) => void;
-        setMoveHistory: (history: MoveHistoryItem[]) => void;
-        setMoves: (moves: string[]) => void;
-        setSelectedPiece: (piece: Position | null) => void;
-        setPossibleMoves: (moves: Position[]) => void;
-        setErrorMessage: (msg: string | null) => void;
-        setCheckPath: (path: Position[]) => void;
-        setCheckingPiece: (piece: Position | null) => void;
-        setGuideStep: (step: number) => void;
-        setSelectedOpening: Dispatch<SetStateAction<"" | "italian" | "spanish" | "kings_gambit">>;
-        selectedOpening: string;
-        guideStep: number;
-    }
+    setters: UndoLastMoveParams['setters']
 ) => {
     if (moveHistory.length === 0) return;
 

@@ -1,8 +1,6 @@
 import { Position } from '../types/chess';
 import openingsData from '../data/openings.json';
 
-type OpeningKey = keyof typeof openingsData;
-
 // Fonctions de détection
 const detectItalianOpening = (moves: string[]) => {
     if (moves.length >= 5) {
@@ -85,16 +83,21 @@ export const getCurrentOpeningDescription = (moves: string[]) => {
     return "Ouverture non reconnue";
 };
 
-export const getGuidedMove = (step: number, selectedOpening: string, moves: string[], setGuideStep: (step: number) => void): { from: Position; to: Position }[] | null => {
+export const getGuidedMove = (
+    step: number, 
+    selectedOpening: string, 
+    moves: string[], 
+    setGuideStep: (step: number) => void
+): { from: Position; to: Position }[] | null => {
     // Arrêter le guidage après le 3ème mouvement (step > 5 car chaque mouvement a 2 étapes)
     if (step > 5) {
         setGuideStep(-1);
         return null;
     }
 
-    if (!selectedOpening || !(selectedOpening in openingsData)) return null;
+    if (!selectedOpening || selectedOpening === '' || !(selectedOpening in openingsData)) return null;
     
-    const opening = selectedOpening as OpeningKey;
+    const opening = selectedOpening as keyof typeof openingsData;
     const currentStep = openingsData[opening].steps[step];
     if (!currentStep) return null;
 
