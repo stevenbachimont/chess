@@ -75,6 +75,7 @@ const ChessBoard: React.FC = () => {
     const [selectedTime, setSelectedTime] = useState(300);
     const [promotionPosition, setPromotionPosition] = useState<Position | null>(null);
     const [promotionColor, setPromotionColor] = useState<PieceColor | null>(null);
+    const [draggedPiece, setDraggedPiece] = useState<Position | null>(null);
 
     // Ajouter l'effet pour gérer le décompte du temps
     useEffect(() => {
@@ -187,7 +188,7 @@ const ChessBoard: React.FC = () => {
             // Vérifier si une pièce est capturée
             const capturedPiece = gameState.board[position.y][position.x];
             const movingPiece = gameState.board[selectedPiece.y][selectedPiece.x]!;
-            
+
             // Mouvement valide : mise à jour du plateau
             const newBoard = [...gameState.board];
             const newHasMoved = { ...gameState.hasMoved };
@@ -231,7 +232,7 @@ const ChessBoard: React.FC = () => {
                     y: (position.y + selectedPiece.y) / 2
                 };
             }
-
+            
             // Déplacer la déclaration de nextTurn avant son utilisation
             const nextTurn = gameState.currentTurn === 'white' ? 'black' : 'white';
 
@@ -290,6 +291,12 @@ const ChessBoard: React.FC = () => {
                 setCheckPath([]);
             }
 
+            if (piece?.type === 'pawn' && (position.y === 0 || position.y === 7)) {
+                setPromotionPosition(position);
+                setPromotionColor(piece.color);
+                return;
+            }
+
             setGameState({
                 ...gameState,
                 board: newBoard,
@@ -309,18 +316,12 @@ const ChessBoard: React.FC = () => {
                 }
             }
 
-            // Après un coup valide, ajouter l'incrément
+            // Ajouter 2 secondes au temps du joueur qui vient de jouer
             if (isTimerRunning) {
                 setTimeControl(prev => ({
                     ...prev,
-                    [gameState.currentTurn]: prev[gameState.currentTurn] + timeControl.increment
+                    [gameState.currentTurn]: prev[gameState.currentTurn] + 2
                 }));
-            }
-
-            if (piece?.type === 'pawn' && (position.y === 0 || position.y === 7)) {
-                setPromotionPosition(position);
-                setPromotionColor(piece.color);
-                return;
             }
         }
     };
@@ -420,13 +421,63 @@ const ChessBoard: React.FC = () => {
             color: promotionColor
         };
 
-        setGameState({
-            ...gameState,
+            setGameState({
+                ...gameState,
             board: newBoard
         });
 
         setPromotionPosition(null);
         setPromotionColor(null);
+    };
+
+    const handleDragStart = (e: React.DragEvent, position: Position) => {
+        const piece = gameState.board[position.y][position.x];
+        if (piece && piece.color === gameState.currentTurn) {
+            setDraggedPiece(position);
+            setSelectedPiece(position);
+            const moves = getPossibleMoves(gameState.board, position, gameState);
+            setPossibleMoves(moves);
+            
+            // Ajouter les mouvements de roque si c'est un roi
+            if (piece.type === 'king' && position.x === 3) {
+                const y = piece.color === 'white' ? 7 : 0;
+                if (canCastle({ x: 3, y }, { x: 7, y })) {
+                    moves.push({ x: 5, y });
+                }
+                if (canCastle({ x: 3, y }, { x: 0, y })) {
+                    moves.push({ x: 1, y });
+                }
+            }
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent, position: Position) => {
+        e.preventDefault();
+        if (possibleMoves.some(move => move.x === position.x && move.y === position.y)) {
+            e.currentTarget.classList.add('drop-target');
+        }
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.currentTarget.classList.remove('drop-target');
+    };
+
+    const handleDrop = (e: React.DragEvent, position: Position) => {
+        e.preventDefault();
+        e.currentTarget.classList.remove('drop-target');
+        
+        if (draggedPiece && possibleMoves.some(move => move.x === position.x && move.y === position.y)) {
+            handleSquareClick(position);
+        } else if (draggedPiece) {  // Si on a une pièce mais le mouvement n'est pas valide
+            setErrorMessage("Ce mouvement n'est pas autorisé !");
+            if (!easyMode) {
+                setTimeout(() => {
+                    setErrorMessage(null);
+                }, 2000);
+            }
+        }
+        
+        setDraggedPiece(null);
     };
 
     return (
@@ -529,10 +580,19 @@ const ChessBoard: React.FC = () => {
                                             ${isHighlighted({x, y}) === 'possible' ? 'highlighted' : ''}
                                             ${checkPath.some(pos => pos.x === x && pos.y === y) ? 'check-path' : ''}`}
                                         onClick={() => handleSquareClick({ x, y })}
+                                        onDragOver={(e) => handleDragOver(e, { x, y })}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={(e) => handleDrop(e, { x, y })}
                                     >
                                         {piece && (
-                                            <div className={`chess-piece ${piece.color} ${isCheck ? 'check' : ''}`}>
-                                                {PIECE_SYMBOLS[`${piece.color}-${piece.type}` as keyof typeof PIECE_SYMBOLS]}
+                                            <div 
+                                                className={`chess-piece ${piece.color} ${isCheck ? 'check' : ''} ${
+                                                    draggedPiece?.x === x && draggedPiece?.y === y ? 'dragging' : ''
+                                                }`}
+                                                draggable
+                                                onDragStart={(e) => handleDragStart(e, { x, y })}
+                                            >
+                                                {PIECE_SYMBOLS[`${piece.color}-${piece.type}`]}
                                             </div>
                                         )}
                                     </div>
@@ -599,19 +659,19 @@ const ChessBoard: React.FC = () => {
                             <div className="score-label">Noirs</div>
                             <div className="score-value black">{score.black}</div>
                         </div>
+                </div>
+            </div>
+            <div className="moves-list">
+                <h3>Liste des coups</h3>
+                {moves.map((move, index) => (
+                    <div 
+                        key={index} 
+                        className={`move ${move.startsWith('Blanc') ? 'white' : 'black'}`}
+                    >
+                        {move}
                     </div>
-                </div>
-                <div className="moves-list">
-                    <h3>Liste des coups</h3>
-                    {moves.map((move, index) => (
-                        <div 
-                            key={index} 
-                            className={`move ${move.startsWith('Blanc') ? 'white' : 'black'}`}
-                        >
-                            {move}
-                        </div>
-                    ))}
-                </div>
+                ))}
+            </div>
             </div>
 
             {promotionPosition && promotionColor && (

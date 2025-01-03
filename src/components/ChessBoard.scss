@@ -163,6 +163,10 @@
                 background-color: rgba(0, 100, 255, 0.7) !important;
             }
         }
+        
+        &.drop-target {
+            background-color: rgba(0, 255, 0, 0.3);
+        }
     }
 } 
 
@@ -174,7 +178,7 @@
     align-items: center;
     width: 100%;
     height: 100%;
-    cursor: pointer;
+    cursor: grab;
     user-select: none;
 
     &[class*="white-"] {
@@ -191,6 +195,11 @@
 
     &.check {
         animation: blink 1s infinite;
+    }
+
+    &.dragging {
+        cursor: grabbing;
+        opacity: 0.6;
     }
 }
 
