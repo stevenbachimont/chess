@@ -195,10 +195,21 @@ const ChessBoard: React.FC = () => {
             let enPassantTarget: Position | null = null;
 
             // Créer le message du coup avec la capture si elle existe
-            let moveText = `${gameState.currentTurn === 'white' ? 'Blanc' : 'Noir'}: ${
-                PIECE_NAMES_FR[movingPiece.type]
-            } ${convertCoordinates(selectedPiece.x, selectedPiece.y)} → ${convertCoordinates(position.x, position.y)}`;
-            
+            let moveText = '';
+
+            // Gérer le roque
+            if (piece?.type === 'king' && Math.abs(position.x - selectedPiece.x) === 2) {
+                const isKingSide = position.x < selectedPiece.x;
+                moveText = `${gameState.currentTurn === 'white' ? 'Blanc' : 'Noir'}: ${
+                    isKingSide ? 'Petit roque' : 'Grand roque'
+                }`;
+            } else {
+                // Message normal pour les autres coups
+                moveText = `${gameState.currentTurn === 'white' ? 'Blanc' : 'Noir'}: ${
+                    PIECE_NAMES_FR[movingPiece.type]
+                } ${convertCoordinates(selectedPiece.x, selectedPiece.y)} → ${convertCoordinates(position.x, position.y)}`;
+            }
+
             // Si c'est une prise en passant
             if (piece?.type === 'pawn' && 
                 position.x !== selectedPiece.x && 
