@@ -201,6 +201,11 @@
         cursor: grabbing;
         opacity: 0.6;
     }
+
+    &[class*="white-"] img {
+        filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
+        transform: rotate(-90deg);
+    }
 }
 
 .coordinates {
@@ -569,4 +574,11 @@
             }
         }
     }
+} 
+
+.piece-image {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    transform: rotate(0deg);
 } 

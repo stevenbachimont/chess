@@ -1,11 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { GameState, Position, PIECE_SYMBOLS, PieceColor } from '../types/chess';
+import { GameState, Position, PieceColor } from '../types/chess';
 import './ChessBoard.scss';
 import { initializeBoard, getPossibleMoves, isKingInCheck, getCheckPath } from '../utils/board';
 import { getCurrentOpeningDescription, getGuidedMove } from '../utils/openings';
 import { resetGame, undoLastMove } from '../utils/gameActions';
 import { OpeningKey } from '../types/openings';
 import openingsData from '../data/openings.json';
+import whitePawnImage from '../assets/pieces/pion blanc.png';
+import whiteRookImage from '../assets/pieces/tour blanc.png';
+import whiteKnightImage from '../assets/pieces/cavalier blanc.png';
+import whiteBishopImage from '../assets/pieces/fou blanc.png';
+import whiteQueenImage from '../assets/pieces/dame blanc.png';
+import whiteKingImage from '../assets/pieces/roi blanc.png';
+import blackPawnImage from '../assets/pieces/pion noir.png';
+import blackRookImage from '../assets/pieces/tour noir.png';
+import blackKnightImage from '../assets/pieces/cavalier noir.png';
+import blackBishopImage from '../assets/pieces/fou noir.png';
+import blackQueenImage from '../assets/pieces/dame noir.png';
+import blackKingImage from '../assets/pieces/roi noir.png';
+
+const PIECE_SYMBOLS = {
+    'white-pawn': <img src={whitePawnImage} alt="♙" className="piece-image" data-symbol="♙" />,
+    'white-rook': <img src={whiteRookImage} alt="♖" className="piece-image" data-symbol="♖" />,
+    'white-knight': <img src={whiteKnightImage} alt="♘" className="piece-image" data-symbol="♘" />,
+    'white-bishop': <img src={whiteBishopImage} alt="♗" className="piece-image" data-symbol="♗" />,
+    'white-queen': <img src={whiteQueenImage} alt="♕" className="piece-image" data-symbol="♕" />,
+    'white-king': <img src={whiteKingImage} alt="♔" className="piece-image" data-symbol="♔" />,
+    'black-pawn': <img src={blackPawnImage} alt="♟" className="piece-image" data-symbol="♟" />,
+    'black-rook': <img src={blackRookImage} alt="♜" className="piece-image" data-symbol="♜" />,
+    'black-knight': <img src={blackKnightImage} alt="♞" className="piece-image" data-symbol="♞" />,
+    'black-bishop': <img src={blackBishopImage} alt="♝" className="piece-image" data-symbol="♝" />,
+    'black-queen': <img src={blackQueenImage} alt="♛" className="piece-image" data-symbol="♛" />,
+    'black-king': <img src={blackKingImage} alt="♚" className="piece-image" data-symbol="♚" />
+} as const;
 
 const PIECE_NAMES_FR = {
     'pawn': 'Pion',
@@ -227,7 +254,10 @@ const ChessBoard: React.FC = () => {
                     [gameState.currentTurn]: prevScore[gameState.currentTurn] + PIECE_VALUES['pawn']
                 }));
             } else if (capturedPiece) {
-                moveText += `\n   capture ${PIECE_SYMBOLS[`${capturedPiece.color}-${capturedPiece.type}`]}`;
+                const symbol = capturedPiece.type === 'pawn' && capturedPiece.color === 'white' 
+                    ? '♙'  // Utiliser le symbole Unicode directement pour le pion blanc
+                    : PIECE_SYMBOLS[`${capturedPiece.color}-${capturedPiece.type}`];
+                moveText += `\n   capture ${symbol}`;
                 setScore(prevScore => ({
                     ...prevScore,
                     [gameState.currentTurn]: prevScore[gameState.currentTurn] + PIECE_VALUES[capturedPiece.type]
@@ -721,3 +751,4 @@ const ChessBoard: React.FC = () => {
 };
 
 export default ChessBoard; 
+
