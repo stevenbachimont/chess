@@ -71,5 +71,23 @@
         ],
         "description": "Une ouverture stratégique où les blancs sacrifient un pion du centre pour obtenir un avantage de développement et le contrôle du centre",
         "movesDescription": "GAMBIT DE LA DAME : Les blancs proposent le sacrifice d'un pion central pour obtenir une meilleure position et le contrôle du centre. Les noirs peuvent accepter le gambit en prenant le pion en c4, ou le refuser avec e6 ou c6."
+    },
+    "sicilian": {
+        "name": "Défense sicilienne",
+        "steps": [
+            "1. Blancs: Pion e2 → e4",
+            "1. Noirs: Pion c7 → c5",
+            "2. Blancs: Cavalier g1 → f3",
+            "2. Noirs: Options :",
+            "   - Pion d7 → d6 (Variante du Dragon)",
+            "   - Cavalier b8 → c6 (Variante Najdorf)",
+            "   - Pion e7 → e6 (Variante Scheveningen)",
+            "3. Blancs: Options :",
+            "   - Pion d2 → d4 (Variante ouverte)",
+            "   - Fou f1 → c4 (Attaque Grand Prix)",
+            "   - Pion b2 → b4 (Gambit Smith-Morra)"
+        ],
+        "description": "Une des défenses les plus agressives et dynamiques contre 1.e4. Les noirs contestent immédiatement le centre et créent un déséquilibre positionnel",
+        "movesDescription": "DÉFENSE SICILIENNE : Les noirs répondent à e4 par c5, contestant asymétriquement le centre. Cette défense mène souvent à des positions très tactiques et complexes."
     }
 } 

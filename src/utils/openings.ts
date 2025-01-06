@@ -50,6 +50,16 @@ const detectQueensGambit = (moves: string[]) => {
     return false;
 };
 
+const detectSicilianDefense = (moves: string[]) => {
+    if (moves.length >= 2) {
+        return (
+            matchMove(moves[0], 'e2', 'e4') &&
+            matchMove(moves[1], 'c7', 'c5')
+        );
+    }
+    return false;
+};
+
 export const matchMove = (move: string | undefined, from: string, to: string) => {
     if (!move) return false;
     return move.includes(`${from} → ${to}`);
@@ -78,6 +88,11 @@ export const getCurrentOpeningDescription = (moves: string[]) => {
     // Détection du gambit de la dame
     if (detectQueensGambit(moves)) {
         return openingsData.queens_gambit.movesDescription;
+    }
+
+    // Détection de la défense sicilienne
+    if (detectSicilianDefense(moves)) {
+        return openingsData.sicilian.movesDescription;
     }
 
     return "Ouverture non reconnue";

@@ -167,18 +167,16 @@ const ChessBoard: React.FC = () => {
             const piece = gameState.board[position.y][position.x];
             if (piece && piece.color === gameState.currentTurn) {
                 setSelectedPiece(position);
-                let moves = getPossibleMoves(gameState.board, position, gameState);
-
-                // Si c'est un roi sur sa case initiale, ajouter les mouvements de roque possibles
-                if (piece.type === 'king' && position.x === 3) {
-                    const y = piece.color === 'white' ? 7 : 0;
-                    if (canCastle({ x: 3, y }, { x: 7, y })) {
-                        moves.push({ x: 5, y }); // Petit roque
-                    }
-                    if (canCastle({ x: 3, y }, { x: 0, y })) {
-                        moves.push({ x: 1, y }); // Grand roque
-                    }
-                }
+                // En mode normal, toutes les cases sont des mouvements possibles
+                let moves = easyMode ? 
+                    getPossibleMoves(gameState.board, position, gameState) :
+                    // En mode normal, permettre le déplacement vers toutes les cases vides ou occupées par l'adversaire
+                    Array.from({ length: 8 }, (_, y) => 
+                        Array.from({ length: 8 }, (_, x) => {
+                            const targetPiece = gameState.board[y][x];
+                            return (!targetPiece || targetPiece.color !== piece.color) ? { x, y } : null;
+                        })
+                    ).flat().filter(move => move !== null) as Position[];
 
                 setPossibleMoves(moves);
                 setErrorMessage(null);
@@ -246,7 +244,9 @@ const ChessBoard: React.FC = () => {
                 position.y === gameState.enPassantTarget.y) {
                 // Supprimer le pion capturé
                 newBoard[selectedPiece.y][position.x] = null;
-                moveText += `\n   capture en passant ${PIECE_SYMBOLS[`${gameState.currentTurn === 'white' ? 'black' : 'white'}-pawn`]}`;
+                // Utiliser data-symbol pour le symbole du pion
+                const capturedPawnSymbol = PIECE_SYMBOLS[`${gameState.currentTurn === 'white' ? 'black' : 'white'}-pawn`].props['data-symbol'];
+                moveText += `\n   capture en passant ${capturedPawnSymbol}`;
                 
                 // Ajouter le point pour la capture
                 setScore(prevScore => ({
