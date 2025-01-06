@@ -56,7 +56,12 @@ const DEFAULT_TIME_OPTIONS = [
     { label: '1 min', value: 60 },
     { label: '3 min', value: 180 },
     { label: '5 min', value: 300 },
-    { label: '10 min', value: 600 }
+    { label: '10 min', value: 600 },
+    { label: '15 min', value: 900 },
+    { label: '20 min', value: 1200 },
+    { label: '25 min', value: 1500 },
+    { label: '30 min', value: 1800 }
+   
 ] as const;
 
 const ChessBoard: React.FC = () => {
