@@ -60,6 +60,16 @@ const detectSicilianDefense = (moves: string[]) => {
     return false;
 };
 
+const detectFrenchDefense = (moves: string[]) => {
+    if (moves.length >= 2) {
+        return (
+            matchMove(moves[0], 'e2', 'e4') &&
+            matchMove(moves[1], 'e7', 'e6')
+        );
+    }
+    return false;
+};
+
 export const matchMove = (move: string | undefined, from: string, to: string) => {
     if (!move) return false;
     return move.includes(`${from} → ${to}`);
@@ -93,6 +103,11 @@ export const getCurrentOpeningDescription = (moves: string[]) => {
     // Détection de la défense sicilienne
     if (detectSicilianDefense(moves)) {
         return openingsData.sicilian.movesDescription;
+    }
+
+    // Ajouter la détection de la défense française
+    if (detectFrenchDefense(moves)) {
+        return openingsData.french.movesDescription;
     }
 
     return "Ouverture non reconnue";

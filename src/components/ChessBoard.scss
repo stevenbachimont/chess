@@ -126,12 +126,12 @@
         align-items: center;
         cursor: pointer;
         
-        &.light {
-            background-color: #a09b9b;
+        &.dark {
+            background-color: #3b3b3b;
         }
         
-        &.dark {
-            background-color: #0f0f0f;
+        &.light {
+            background-color: #dadada;
         }
         
         &:hover {

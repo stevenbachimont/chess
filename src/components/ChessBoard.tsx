@@ -616,7 +616,7 @@ const ChessBoard: React.FC = () => {
                                 return (
                                     <div
                                         key={`${x}-${y}`}
-                                        className={`square ${(x + y) % 2 === 0 ? 'light' : 'dark'} 
+                                        className={`square ${(x + y) % 2 === 1 ? 'light' : 'dark'} 
                                             ${isHighlighted({x, y}) === 'guide' ? 'highlighted-guide' : ''}
                                             ${isHighlighted({x, y}) === 'possible' ? 'highlighted' : ''}
                                             ${checkPath.some(pos => pos.x === x && pos.y === y) ? 'check-path' : ''}`}
