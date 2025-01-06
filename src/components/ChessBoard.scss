@@ -188,8 +188,8 @@
     }
 
     &[class*="black-"] {
-        color: #ff0000;  // Rouge vif
-        -webkit-text-stroke: 1px #800000;  // Rouge foncé pour le contour
+        color: #ff0000;
+        -webkit-text-stroke: 1px #800000;
         text-shadow: none;
     }
 
@@ -199,7 +199,8 @@
 
     &.dragging {
         cursor: grabbing;
-        opacity: 0.6;
+        width: 60%;
+        z-index: 1000;
     }
 
     &[class*="white-"] img {
@@ -581,4 +582,12 @@
     height: 80%;
     object-fit: contain;
     transform: rotate(0deg);
+} 
+
+@keyframes wobble {
+    0% { transform: rotate(-90deg) scale(1.1) skew(0deg, 0deg); }
+    25% { transform: rotate(-90deg) scale(1.1) skew(2deg, 1deg); }
+    50% { transform: rotate(-90deg) scale(1.1) skew(0deg, 0deg); }
+    75% { transform: rotate(-90deg) scale(1.1) skew(-2deg, -1deg); }
+    100% { transform: rotate(-90deg) scale(1.1) skew(0deg, 0deg); }
 } 

@@ -220,7 +220,7 @@ const ChessBoard: React.FC = () => {
             const newBoard = [...gameState.board];
             const newHasMoved = { ...gameState.hasMoved };
             let enPassantTarget: Position | null = null;
-
+            
             // Créer le message du coup avec la capture si elle existe
             let moveText = '';
 
@@ -233,7 +233,7 @@ const ChessBoard: React.FC = () => {
             } else {
                 // Message normal pour les autres coups
                 moveText = `${gameState.currentTurn === 'white' ? 'Blanc' : 'Noir'}: ${
-                    PIECE_NAMES_FR[movingPiece.type]
+                PIECE_NAMES_FR[movingPiece.type]
                 } ${convertCoordinates(selectedPiece.x, selectedPiece.y)} → ${convertCoordinates(position.x, position.y)}`;
             }
 
@@ -254,10 +254,7 @@ const ChessBoard: React.FC = () => {
                     [gameState.currentTurn]: prevScore[gameState.currentTurn] + PIECE_VALUES['pawn']
                 }));
             } else if (capturedPiece) {
-                const symbol = capturedPiece.type === 'pawn' && capturedPiece.color === 'white' 
-                    ? '♙'  // Utiliser le symbole Unicode directement pour le pion blanc
-                    : PIECE_SYMBOLS[`${capturedPiece.color}-${capturedPiece.type}`];
-                moveText += `\n   capture ${symbol}`;
+                moveText += `\n   capture ${PIECE_SYMBOLS[`${capturedPiece.color}-${capturedPiece.type}`].props['data-symbol']}`;
                 setScore(prevScore => ({
                     ...prevScore,
                     [gameState.currentTurn]: prevScore[gameState.currentTurn] + PIECE_VALUES[capturedPiece.type]
@@ -411,8 +408,11 @@ const ChessBoard: React.FC = () => {
         const lastMove = moves[moves.length - 1];
         if (lastMove && lastMove.includes('capture')) {
             const captureColor = lastMove.startsWith('Blanc') ? 'white' : 'black';
-            const capturedPieceType = lastMove.split('capture ')[1];
-            const pieceType = Object.entries(PIECE_SYMBOLS).find(([_, symbol]) => symbol === capturedPieceType)?.[0].split('-')[1] as keyof typeof PIECE_VALUES;
+            const capturedPieceSymbol = lastMove.split('capture ')[1];
+            // Trouver le type de pièce à partir du symbole
+            const pieceType = Object.entries(PIECE_SYMBOLS).find(([_, element]) => 
+                element.props['data-symbol'] === capturedPieceSymbol
+            )?.[0].split('-')[1] as keyof typeof PIECE_VALUES;
             
             if (pieceType) {
                 setScore(prevScore => ({
