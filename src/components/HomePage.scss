@@ -6,6 +6,10 @@
     min-height: 100vh;
     width: 100vw;
     background-color: #242424;
+    background-image: url('../assets/plateau.png');
+    background-size: 60%;
+    background-position: center;
+    background-repeat: no-repeat;
     padding: 20px;
     text-align: center;
     position: fixed;
@@ -15,6 +19,24 @@
     bottom: 0;
     margin: 0;
     overflow: hidden;
+
+    &::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(36, 36, 36, 0.548);
+        z-index: 0;
+    }
+
+    > * {
+        position: relative;
+        z-index: 1;
+    }
 
     h1 {
         color: #fff;
@@ -37,10 +59,23 @@
         position: relative;
         z-index: 1;
         transform: translateX(0);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &[src*="chessburger.png"] {
+            width: 400px;
+            height: auto;
+        }
+
+        &[src*="openchessburger.png"] {
+            width: 600px;
+            height: auto;
+            transform: translateX(50px);
+        }
 
         &:hover {
             opacity: 0.9;
-            transform: translateX(100px);
         }
     }
 
@@ -71,11 +106,12 @@
 
     .buttons-container {
         position: absolute;
-        left: calc(50% - 300px);
+        left: calc(50% - 400px);
         display: flex;
         flex-direction: column;
         gap: 20px;
         z-index: 10;
+        animation: float 3s ease-in-out infinite;
     }
 
     .play-button, .rules-button {
@@ -95,11 +131,20 @@
             opacity: 1;
             transform: translateX(0);
             pointer-events: auto;
+            &:nth-child(1) {
+                animation: float 3s ease-in-out infinite;
+                animation-delay: 0.2s;
+            }
+            &:nth-child(2) {
+                animation: float 3s ease-in-out infinite;
+                animation-delay: 0.4s;
+            }
         }
 
         &:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+            animation-play-state: paused;
         }
 
         &:active {
@@ -108,14 +153,14 @@
     }
 
     .play-button {
-        background-color: #4CAF50;
+        background-color: #4caf4f6b;
         &:hover {
             background-color: #45a049;
         }
     }
 
     .rules-button {
-        background-color: #2196F3;
+        background-color: #2195f36e;
         &:hover {
             background-color: #1976D2;
         }
