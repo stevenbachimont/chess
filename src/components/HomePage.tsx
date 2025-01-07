@@ -1,25 +1,62 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './HomePage.scss';
+import chessburger from '../assets/chessburger.png';
+import openchessburger from '../assets/openchessburger.png';
 
 const HomePage: React.FC = () => {
     const navigate = useNavigate();
+    const [isHovered, setIsHovered] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    const handleMouseEnter = () => {
+        setIsTransitioning(true);
+        setTimeout(() => {
+            setIsHovered(true);
+            setIsTransitioning(false);
+        }, 150);
+    };
+
+    const handleMouseLeave = (e: React.MouseEvent) => {
+        const relatedTarget = e.relatedTarget as HTMLElement;
+        if (relatedTarget?.classList.contains('play-button')) {
+            return;
+        }
+        
+        setIsTransitioning(true);
+        setTimeout(() => {
+            setIsHovered(false);
+            setIsTransitioning(false);
+        }, 150);
+    };
 
     return (
         <div className="home-container">
-            <div className="menu">
-                <h1>CHESS BURGER</h1>
-                <div className="menu-buttons">
-                    <button className="menu-button play" onClick={() => navigate('/play')}>
-                        Jouer
+            <h1>CHESSBURGER</h1>
+            <div 
+                className="content-wrapper"
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+            >
+                <div className="buttons-container">
+                    <button 
+                        className={`play-button ${isHovered ? 'visible' : ''}`}
+                        onClick={() => navigate('/play')}
+                    >
+                        Jouer aux échecs
                     </button>
-                    <button className="menu-button rules" onClick={() => navigate('/rules')}>
-                        Règles
-                    </button>
-                    <button className="menu-button settings" onClick={() => navigate('/settings')}>
-                        Paramètres
+                    <button 
+                        className={`rules-button ${isHovered ? 'visible' : ''}`}
+                        onClick={() => navigate('/rules')}
+                    >
+                        Règles du jeu
                     </button>
                 </div>
+                <img 
+                    src={isHovered ? openchessburger : chessburger} 
+                    alt="Chess Burger Logo" 
+                    className={`chess-burger-logo ${isTransitioning ? 'transitioning' : ''}`}
+                />
             </div>
         </div>
     );
