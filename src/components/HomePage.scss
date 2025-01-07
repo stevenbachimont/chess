@@ -1,0 +1,58 @@
+.home-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #242424;
+
+    .menu {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        text-align: center;
+
+        h1 {
+            color: #fff;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+
+            .menu-button {
+                padding: 15px 40px;
+                font-size: 1.2em;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: transform 0.2s, box-shadow 0.2s;
+                
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                }
+
+                &.play {
+                    background-color: #4CAF50;
+                    color: white;
+                }
+
+                &.rules {
+                    background-color: #2196F3;
+                    color: white;
+                }
+
+                &.settings {
+                    background-color: #FFA500;
+                    color: white;
+                }
+            }
+        }
+    }
+} 
