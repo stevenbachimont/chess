@@ -51,6 +51,12 @@ const HomePage: React.FC = () => {
                     >
                         Règles du jeu
                     </button>
+                    <button 
+                        className={`comptoir-button ${isHovered ? 'visible' : ''}`}
+                        onClick={() => navigate('/comptoir')}
+                    >
+                        Le Comptoir
+                    </button>
                 </div>
                 <img 
                     src={isHovered ? openchessburger : chessburger} 

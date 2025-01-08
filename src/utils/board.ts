@@ -208,29 +208,36 @@ export const wouldKingBeInCheck = (board: (Piece | null)[][], from: Position, to
     return isKingInCheck(simulatedBoard, kingColor) !== null;
 };
 
-export const getCheckPath = (board: (Piece | null)[][], from: Position, kingPosition: Position): Position[] => {
-    const piece = board[from.y][from.x];
-    if (!piece) return [];
-
-    const path: Position[] = [];
-    const dx = Math.sign(kingPosition.x - from.x);
-    const dy = Math.sign(kingPosition.y - from.y);
-
-    // Pour le cavalier, seulement la position finale
-    if (piece.type === 'knight') {
-        return [kingPosition];
+export const isCheckmate = (board: GameState['board'], color: PieceColor, gameState: GameState): boolean => {
+    // 1. Vérifier si le roi est en échec
+    if (!isKingInCheck(board, color)) {
+        return false;
     }
 
-    // Pour les autres pièces, calculer la trajectoire
-    let x = from.x + dx;
-    let y = from.y + dy;
-    while (x !== kingPosition.x || y !== kingPosition.y) {
-        path.push({ x, y });
-        if (piece.type === 'pawn') break; // Le pion n'a qu'une case de menace
-        if (dx !== 0) x += dx;
-        if (dy !== 0) y += dy;
+    // 2. Pour chaque pièce de la couleur donnée
+    for (let y = 0; y < 8; y++) {
+        for (let x = 0; x < 8; x++) {
+            const piece = board[y][x];
+            if (piece && piece.color === color) {
+                // 3. Obtenir tous les mouvements possibles pour cette pièce
+                const moves = getPossibleMoves(board, { x, y }, gameState);
+                
+                // 4. Pour chaque mouvement possible
+                for (const move of moves) {
+                    // 5. Simuler le mouvement
+                    const newBoard = board.map(row => [...row]);
+                    newBoard[move.y][move.x] = newBoard[y][x];
+                    newBoard[y][x] = null;
+                    
+                    // 6. Si après ce mouvement le roi n'est plus en échec
+                    if (!isKingInCheck(newBoard, color)) {
+                        return false; // Ce n'est pas un échec et mat
+                    }
+                }
+            }
+        }
     }
-    path.push(kingPosition);
-
-    return path;
+    
+    // Si aucun mouvement ne peut sauver le roi, c'est échec et mat
+    return true;
 };

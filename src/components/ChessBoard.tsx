@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GameState, Position, PieceColor } from '../types/chess';
 import './ChessBoard.scss';
-import { initializeBoard, getPossibleMoves, isKingInCheck, getCheckPath } from '../utils/board';
+import { initializeBoard, getPossibleMoves, isKingInCheck, isCheckmate } from '../utils/board';
 import { getCurrentOpeningDescription, getGuidedMove } from '../utils/openings';
 import { resetGame, undoLastMove } from '../utils/gameActions';
 import { OpeningKey } from '../types/openings';
@@ -18,6 +18,7 @@ import blackKnightImage from '../assets/pieces/cavalier noir.png';
 import blackBishopImage from '../assets/pieces/fou noir.png';
 import blackQueenImage from '../assets/pieces/dame noir.png';
 import blackKingImage from '../assets/pieces/roi noir.png';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const PIECE_SYMBOLS = {
     'white-pawn': <img src={whitePawnImage} alt="♙" className="piece-image" data-symbol="♙" />,
@@ -108,6 +109,33 @@ const ChessBoard: React.FC = () => {
     const [promotionPosition, setPromotionPosition] = useState<Position | null>(null);
     const [promotionColor, setPromotionColor] = useState<PieceColor | null>(null);
     const [draggedPiece, setDraggedPiece] = useState<Position | null>(null);
+    const navigate = useNavigate();
+    const location = useLocation();
+    
+    // Récupérer les options de l'URL
+    const searchParams = new URLSearchParams(location.search);
+    const timeControlFromUrl = parseInt(searchParams.get('timeControl') || '300');
+    const modeFromUrl = searchParams.get('mode') as 'normal' | 'assisted' || 'normal';
+    const themeFromUrl = searchParams.get('theme') as 'classic' | 'modern' || 'classic';
+
+    // Mettre à jour les valeurs initiales des états existants
+    useEffect(() => {
+        setTimeControl({
+            white: timeControlFromUrl,
+            black: timeControlFromUrl,
+            increment: 2
+        });
+        setEasyMode(modeFromUrl === 'assisted');
+        setSelectedTime(timeControlFromUrl);
+    }, [timeControlFromUrl, modeFromUrl]);
+
+    // Appliquer le thème
+    useEffect(() => {
+        const board = document.querySelector('.chess-board');
+        if (board) {
+            board.className = `chess-board ${themeFromUrl}`;
+        }
+    }, [themeFromUrl]);
 
     // Ajouter l'effet pour gérer le décompte du temps
     useEffect(() => {
@@ -308,30 +336,36 @@ const ChessBoard: React.FC = () => {
                 newBoard[selectedPiece.y][selectedPiece.x] = null;
             }
 
-            // Vérifier si le mouvement met le roi adverse en échec
-            const isOpponentInCheck = isKingInCheck(newBoard, nextTurn);
-            if (isOpponentInCheck) {
-                setErrorMessage("Échec !");
+            // Vérifier l'échec et mat
+            if (isCheckmate(newBoard, nextTurn, {
+                ...gameState,
+                board: newBoard,
+                currentTurn: nextTurn,
+                hasMoved: newHasMoved,
+                enPassantTarget
+            })) {
+                setErrorMessage(`Échec et mat ! Les ${gameState.currentTurn === 'white' ? 'blancs' : 'noirs'} gagnent !`);
+                moveText += "\n   Échec et mat !";
+                // Ajouter des points bonus pour l'échec et mat
+                setScore(prevScore => ({
+                    ...prevScore,
+                    [gameState.currentTurn]: prevScore[gameState.currentTurn] + 5 // Bonus de 5 points pour l'échec et mat
+                }));
+            } else if (isKingInCheck(newBoard, nextTurn)) {
+                moveText += "\n   Échec !";
                 setCheckingPiece(position);
-                if (easyMode) {
-                    let kingPosition: Position | null = null;
-                    newBoard.forEach((row, y) => {
-                        row.forEach((piece, x) => {
-                            if (piece?.type === 'king' && piece.color === nextTurn) {
-                                kingPosition = { x, y };
-                            }
-                        });
+                // Trouver la position du roi
+                let kingPosition: Position | null = null;
+                newBoard.forEach((row, y) => {
+                    row.forEach((piece, x) => {
+                        if (piece?.type === 'king' && piece.color === nextTurn) {
+                            kingPosition = { x, y };
+                        }
                     });
-                    
-                    if (kingPosition) {
-                        const path = getCheckPath(newBoard, position, kingPosition);
-                        setCheckPath(path);
-                    }
+                });
+                if (kingPosition) {
+                    setCheckPath([position, kingPosition]);
                 }
-            } else {
-                setErrorMessage(null);
-                setCheckingPiece(null);
-                setCheckPath([]);
             }
 
             if (piece?.type === 'pawn' && (position.y === 0 || position.y === 7)) {
@@ -656,6 +690,9 @@ const ChessBoard: React.FC = () => {
                     </button>
                     <button className="easy-mode-button" onClick={toggleEasyMode}>
                         {easyMode ? 'Sans assistance' : 'Avec assistance'}
+                    </button>
+                    <button className="menu-button" onClick={() => navigate('/')}>
+                        Retour au menu
                     </button>
                 </div>
             </div>

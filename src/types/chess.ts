@@ -21,6 +21,12 @@ export interface GameState {
     enPassantTarget: Position | null;
 }
 
+export interface GameOptions {
+    timeControl: number;
+    mode: 'normal' | 'assisted';
+    theme: 'classic' | 'modern';
+}
+
 export const PIECE_SYMBOLS = {
   'white-king': '♚',
   'white-queen': '♛',

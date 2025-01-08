@@ -76,14 +76,14 @@
         &[src*="chessburger.png"] {
             width: 200px;
             height: auto;
-            top: 100px;
-            right: 100px;
+            margin: 50px auto;
         }
 
         &[src*="openchessburger.png"] {
             width: 400px;
             height: auto;
             transform: translateX(50px);
+            margin: 0 auto;
         }
 
         &:hover {
@@ -109,17 +109,20 @@
 
     .content-wrapper {
         position: relative;
+        right: 10%;
+        top: 15%;
         width: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 30px;
+        padding: 100px;
+        cursor: pointer;
     }
 
     .buttons-container {
         position: absolute;
-        left: calc(50% - 400px);
-        top: 50%;
+        left: calc(50% - 350px);
         display: flex;
         flex-direction: column;
         gap: 20px;
@@ -127,7 +130,7 @@
         animation: float 3s ease-in-out infinite;
     }
 
-    .play-button, .rules-button {
+    .play-button, .rules-button, .comptoir-button {
         padding: 15px 30px;
         font-size: 0.8em;
         color: white;
@@ -177,6 +180,13 @@
         background-color: #2195f36e;
         &:hover {
             background-color: #1976D2;
+        }
+    }
+
+    .comptoir-button {
+        background-color: #ff9800a8;
+        &:hover {
+            background-color: #F57C00;
         }
     }
 }
