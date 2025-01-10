@@ -139,7 +139,7 @@ const ChessBoard: React.FC = () => {
 
     // Ajouter l'effet pour gérer le décompte du temps
     useEffect(() => {
-        let interval: number;
+        let interval: NodeJS.Timeout;
         if (isTimerRunning) {
             interval = setInterval(() => {
                 setTimeControl(prev => ({
