@@ -70,6 +70,41 @@ const detectFrenchDefense = (moves: string[]) => {
     return false;
 };
 
+// Ajouter la fonction de détection pour Caro-Kann
+const detectCaroKann = (moves: string[]) => {
+    if (moves.length >= 2) {
+        return (
+            matchMove(moves[0], 'e2', 'e4') &&
+            matchMove(moves[1], 'c7', 'c6')
+        );
+    }
+    return false;
+};
+
+// Ajouter la fonction de détection pour la défense indienne du roi
+const detectKingsIndian = (moves: string[]) => {
+    if (moves.length >= 4) {
+        return (
+            matchMove(moves[0], 'd2', 'd4') &&
+            matchMove(moves[1], 'g8', 'f6') &&
+            matchMove(moves[2], 'c2', 'c4') &&
+            matchMove(moves[3], 'g7', 'g6')
+        );
+    }
+    return false;
+};
+
+// Ajouter la fonction de détection pour la défense hollandaise
+const detectDutchDefense = (moves: string[]) => {
+    if (moves.length >= 2) {
+        return (
+            matchMove(moves[0], 'd2', 'd4') &&
+            matchMove(moves[1], 'f7', 'f5')
+        );
+    }
+    return false;
+};
+
 export const matchMove = (move: string | undefined, from: string, to: string) => {
     if (!move) return false;
     return move.includes(`${from} → ${to}`);
@@ -78,6 +113,21 @@ export const matchMove = (move: string | undefined, from: string, to: string) =>
 export const getCurrentOpeningDescription = (moves: string[]) => {
     if (moves.length === 0) {
         return "En attente du premier coup...";
+    }
+
+    // Ajouter la détection de la défense hollandaise
+    if (detectDutchDefense(moves)) {
+        return openingsData.dutch.movesDescription;
+    }
+
+    // Ajouter la détection de la défense indienne du roi
+    if (detectKingsIndian(moves)) {
+        return openingsData.kings_indian.movesDescription;
+    }
+
+    // Ajouter la détection de Caro-Kann
+    if (detectCaroKann(moves)) {
+        return openingsData.caro_kann.movesDescription;
     }
 
     // Détection de l'ouverture italienne

@@ -104,5 +104,54 @@
         ],
         "description": "Une défense solide et stratégique où les noirs contestent le centre de manière posée. Cette ouverture mène souvent à des positions complexes avec des structures de pions caractéristiques",
         "movesDescription": "DÉFENSE FRANÇAISE : Les noirs répondent à e4 par e6, préparant d5. Cette défense crée une structure de pions solide mais peut temporairement restreindre le fou-roi noir."
+    },
+    "caro_kann": {
+        "name": "Défense Caro-Kann",
+        "steps": [
+            "1. Blancs: Pion e2 → e4",
+            "1. Noirs: Pion c7 → c6",
+            "2. Blancs: Pion d2 → d4",
+            "2. Noirs: Pion d7 → d5",
+            "3. Blancs: Options :",
+            "   - Cavalier b1 → c3 (Variante classique)",
+            "   - Pion e4 → e5 (Variante d'avance)",
+            "   - Cavalier b1 → d2 (Variante Tartakower)"
+        ],
+        "description": "Une défense solide et positionnelle contre 1.e4. Les noirs établissent une base de pions solide avant de contester le centre.",
+        "movesDescription": "DÉFENSE CARO-KANN : Les noirs répondent à e4 par c6, préparant d5. Cette défense crée une structure de pions solide et flexible."
+    },
+    "kings_indian": {
+        "name": "Défense indienne du roi",
+        "steps": [
+            "1. Blancs: Pion d2 → d4",
+            "1. Noirs: Cavalier g8 → f6",
+            "2. Blancs: Pion c2 → c4",
+            "2. Noirs: Pion g7 → g6",
+            "3. Blancs: Cavalier b1 → c3",
+            "3. Noirs: Fou f8 → g7",
+            "4. Blancs: Options :",
+            "   - Pion e2 → e4 (Variante classique)",
+            "   - Cavalier g1 → f3 (Variante flexible)",
+            "   - Pion e2 → e3 (Variante fermée)"
+        ],
+        "description": "Une défense hypermoderne où les noirs contrôlent le centre avec leurs pièces plutôt qu'avec des pions, préparant une contre-attaque à l'aile roi.",
+        "movesDescription": "DÉFENSE INDIENNE DU ROI : Les noirs développent leur fou en fianchetto et visent une contre-attaque dynamique à l'aile roi, tandis que les blancs occupent le centre."
+    },
+    "dutch": {
+        "name": "Défense hollandaise",
+        "steps": [
+            "1. Blancs: Pion d2 → d4",
+            "1. Noirs: Pion f7 → f5",
+            "2. Blancs: Options :",
+            "   - Pion g2 → g3 (Variante fianchetto)",
+            "   - Pion e2 → e4 (Gambit Staunton)",
+            "   - Cavalier g1 → f3 (Variante classique)",
+            "3. Noirs: Options :",
+            "   - Pion e7 → e6 (Système Stonewall)",
+            "   - Pion g7 → g6 (Variante Leningrad)",
+            "   - Pion d7 → d6 (Variante classique)"
+        ],
+        "description": "Une défense combative où les noirs contestent immédiatement le centre avec f5, créant souvent des positions asymétriques et complexes.",
+        "movesDescription": "DÉFENSE HOLLANDAISE : Les noirs répondent à d4 par f5, contestant immédiatement le centre et préparant une attaque à l'aile roi."
     }
 } 
