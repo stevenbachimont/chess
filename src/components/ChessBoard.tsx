@@ -346,10 +346,9 @@ const ChessBoard: React.FC = () => {
             })) {
                 setErrorMessage(`Échec et mat ! Les ${gameState.currentTurn === 'white' ? 'blancs' : 'noirs'} gagnent !`);
                 moveText += "\n   Échec et mat !";
-                // Ajouter des points bonus pour l'échec et mat
                 setScore(prevScore => ({
                     ...prevScore,
-                    [gameState.currentTurn]: prevScore[gameState.currentTurn] + 5 // Bonus de 5 points pour l'échec et mat
+                    [gameState.currentTurn]: prevScore[gameState.currentTurn] + 5
                 }));
             } else if (isKingInCheck(newBoard, nextTurn)) {
                 moveText += "\n   Échec !";
@@ -366,6 +365,11 @@ const ChessBoard: React.FC = () => {
                 if (kingPosition) {
                     setCheckPath([position, kingPosition]);
                 }
+            } else {
+                // Réinitialiser les indicateurs d'échec quand il n'y a plus d'échec
+                setCheckingPiece(null);
+                setCheckPath([]);
+                setErrorMessage(null);
             }
 
             if (piece?.type === 'pawn' && (position.y === 0 || position.y === 7)) {

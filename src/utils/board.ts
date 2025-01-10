@@ -210,7 +210,8 @@ export const wouldKingBeInCheck = (board: (Piece | null)[][], from: Position, to
 
 export const isCheckmate = (board: GameState['board'], color: PieceColor, gameState: GameState): boolean => {
     // 1. Vérifier si le roi est en échec
-    if (!isKingInCheck(board, color)) {
+    const checkingPiece = isKingInCheck(board, color);
+    if (!checkingPiece) {
         return false;
     }
 
@@ -220,7 +221,7 @@ export const isCheckmate = (board: GameState['board'], color: PieceColor, gameSt
             const piece = board[y][x];
             if (piece && piece.color === color) {
                 // 3. Obtenir tous les mouvements possibles pour cette pièce
-                const moves = getPossibleMoves(board, { x, y }, gameState);
+                const moves = getPossibleMoves(board, { x, y }, gameState, false); // false pour éviter la récursion
                 
                 // 4. Pour chaque mouvement possible
                 for (const move of moves) {
