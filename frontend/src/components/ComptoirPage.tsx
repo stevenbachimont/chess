@@ -44,7 +44,7 @@ const ComptoirPage: React.FC = () => {
             
             <div className="options-container">
                 <div className="option-group">
-                    <h2>Contrôle du temps</h2>
+                    <h2>Minuteur</h2>
                     <div className="options-grid">
                         {['1', '3', '5', '10', '15', '30'].map(time => (
                             <button

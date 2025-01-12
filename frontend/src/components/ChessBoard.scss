@@ -222,8 +222,8 @@
     }
 
     &.modern {
-        .square.light { background-color: #ebecd0; }
-        .square.dark { background-color: #779556; }
+        .square.light { background-color: #06d7f3; }
+        .square.dark { background-color: #ff06e6; }
     }
 } 
 
@@ -273,19 +273,19 @@
     align-items: center;
     color: #333;
     font-weight: bold;
-    font-size: calc(var(--square-size) * 0.3);
+    font-size: calc(var(--board-size) * 0.03);
     
     &.number {
-        width: calc(var(--square-size) * 0.4);
-        height: var(--square-size);
-        left: calc(var(--square-size) * -0.4);
+        width: calc(var(--board-size) * 0.04);
+        height: calc(var(--board-size) * -0.08);
+        left: calc(var(--board-size) * -0.04);
         transform: rotate(90deg);
     }
     
     &.letter {
         width: var(--square-size);
-        height: calc(var(--square-size) * 0.4);
-        top: calc(var(--square-size) * -0.4);
+        height: calc(var(--board-size) * 0.04);
+        top: calc(var(--board-size) * -0.04);
     }
 } 
 
@@ -582,7 +582,7 @@
 
 .game-buttons {
     position: fixed;
-    bottom: 5px;
+    bottom: 0;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
@@ -590,7 +590,7 @@
     justify-content: center;
     width: var(--board-size);
     z-index: 1000;
-    background-color: #242424;
+    background-color: #24242400;
     padding: 10px;
 
     .reset-button, .undo-button, .easy-mode-button, .menu-button {

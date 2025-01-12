@@ -39,12 +39,12 @@ const HomePage: React.FC = () => {
                 onMouseLeave={handleMouseLeave}
             >
                 <div className="buttons-container">
-                    <button 
+                    {/*<button 
                         className={`play-button ${isHovered ? 'visible' : ''}`}
                         onClick={() => navigate('/play')}
                     >
                         Jouer aux échecs
-                    </button>
+                    </button>*/}
                     <button 
                         className={`rules-button ${isHovered ? 'visible' : ''}`}
                         onClick={() => navigate('/rules')}
