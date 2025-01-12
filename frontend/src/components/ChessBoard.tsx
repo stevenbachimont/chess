@@ -139,7 +139,7 @@ const ChessBoard: React.FC = () => {
 
     // Ajouter l'effet pour gérer le décompte du temps
     useEffect(() => {
-        let interval: number;
+        let interval: ReturnType<typeof setInterval>;
         if (isTimerRunning) {
             interval = setInterval(() => {
                 setTimeControl(prev => ({
@@ -692,9 +692,9 @@ const ChessBoard: React.FC = () => {
                     <button className="undo-button" onClick={handleUndo} disabled={!canUndo}>
                         Annuler coup
                     </button>
-                    <button className="easy-mode-button" onClick={toggleEasyMode}>
+                    {/*<button className="easy-mode-button" onClick={toggleEasyMode}>
                         {easyMode ? 'Sans assistance' : 'Avec assistance'}
-                    </button>
+                    </button>*/}
                     <button className="menu-button" onClick={() => navigate('/')}>
                         Retour au menu
                     </button>
