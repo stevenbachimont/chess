@@ -1,25 +1,31 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-export interface AuthRequest extends Request {
-    userId?: string;
+declare global {
+    namespace Express {
+        interface Request {
+            user?: {
+                id: string;
+                username: string;
+            }
+        }
+    }
 }
 
-export const auth = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+const auth = (req: Request, res: Response, next: NextFunction) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
+        const token = req.header('Authorization')?.replace('Bearer ', '');
         
         if (!token) {
-            res.status(401).json({ message: 'Token manquant' });
-            return;
+            throw new Error();
         }
 
-        const decodedToken = jwt.verify(token, JWT_SECRET) as { userId: string };
-        req.userId = decodedToken.userId;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+        req.user = decoded as { id: string; username: string };
         next();
     } catch (error) {
-        res.status(401).json({ message: 'Token invalide' });
+        res.status(401).json({ message: 'Veuillez vous authentifier' });
     }
-}; 
+};
+
+export default auth; 

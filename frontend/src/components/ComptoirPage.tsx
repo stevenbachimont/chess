@@ -30,7 +30,7 @@ const ComptoirPage: React.FC = () => {
             searchParams.append(key, value.toString());
         });
         
-        navigate(`/play?${searchParams.toString()}`);
+        navigate(`/game?${searchParams.toString()}`);
     };
 
     return (

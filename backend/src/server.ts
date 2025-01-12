@@ -8,7 +8,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+});
+
+app.use(cors({
+    origin: 'http://localhost:5173', // URL de votre frontend Vite
+    credentials: true
+}));
 app.use(express.json());
 
 // MongoDB connection
@@ -23,4 +31,5 @@ app.use('/api/game', gameRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log('MongoDB URI:', MONGODB_URI);
 }); 

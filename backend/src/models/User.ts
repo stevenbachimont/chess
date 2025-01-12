@@ -6,7 +6,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        trim: true
+        trim: true,
+        minlength: 3
     },
     email: {
         type: String,
@@ -16,7 +17,8 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
+        required: true,
+        minlength: 6
     },
     elo: {
         type: Number,
@@ -37,6 +39,10 @@ const userSchema = new mongoose.Schema({
     draws: {
         type: Number,
         default: 0
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
