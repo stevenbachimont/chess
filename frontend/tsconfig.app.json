@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    // ... autres options
+  },
+  "include": ["src"]
+} 
