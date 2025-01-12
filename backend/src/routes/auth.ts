@@ -3,8 +3,31 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import User from '../models/User';
 import auth from '../middleware/auth';
+import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 
 const router: Router = express.Router();
+
+// Configuration du transporteur d'email
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+
+// Vérifier la configuration au démarrage
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('Erreur de configuration SMTP:', error);
+    } else {
+        console.log('Serveur SMTP prêt à envoyer des emails');
+    }
+});
 
 // Route de test
 router.get('/test', (req: Request, res: Response) => {
@@ -121,6 +144,77 @@ router.delete('/users/:id', auth, async (req: Request, res: Response): Promise<v
         res.json({ message: "Utilisateur supprimé avec succès" });
     } catch (error) {
         res.status(500).json({ message: "Erreur serveur" });
+    }
+});
+
+// Demande de réinitialisation de mot de passe
+router.post('/forgot-password', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            res.status(404).json({ message: "Aucun compte associé à cet email" });
+            return;
+        }
+
+        // Générer un token unique
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = Date.now() + 3600000; // 1 heure
+
+        // Sauvegarder le token dans la base de données
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = resetTokenExpiry;
+        await user.save();
+
+        // Envoyer l'email
+        const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: 'Réinitialisation de mot de passe - Chessburger',
+            html: `
+                <h1>Réinitialisation de votre mot de passe</h1>
+                <p>Vous avez demandé la réinitialisation de votre mot de passe.</p>
+                <p>Cliquez sur le lien suivant pour définir un nouveau mot de passe :</p>
+                <a href="${resetUrl}">Réinitialiser mon mot de passe</a>
+                <p>Ce lien expirera dans 1 heure.</p>
+                <p>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.json({ message: "Email de réinitialisation envoyé" });
+    } catch (error) {
+        res.status(500).json({ message: "Erreur lors de l'envoi de l'email" });
+    }
+});
+
+// Réinitialisation du mot de passe avec le token
+router.post('/reset-password/:token', async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { token } = req.params;
+        const { password } = req.body;
+
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+
+        if (!user) {
+            res.status(400).json({ message: "Token invalide ou expiré" });
+            return;
+        }
+
+        // Mettre à jour le mot de passe
+        user.password = password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+
+        res.json({ message: "Mot de passe réinitialisé avec succès" });
+    } catch (error) {
+        res.status(500).json({ message: "Erreur lors de la réinitialisation" });
     }
 });
 
