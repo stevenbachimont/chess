@@ -32,6 +32,11 @@ mongoose.connect(MONGODB_URI)
 app.use('/api/auth', authRoutes);
 app.use('/api/game', gameRoutes);
 
+console.log('Configuration email:', {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD?.substring(0, 3) + '...' // Ne pas logger le mot de passe complet
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log('MongoDB URI:', MONGODB_URI);

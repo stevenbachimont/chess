@@ -17,7 +17,8 @@ const transporter = nodemailer.createTransport({
     },
     tls: {
         rejectUnauthorized: false
-    }
+    },
+    debug: true // Pour voir les logs détaillés
 });
 
 // Vérifier la configuration au démarrage
@@ -151,26 +152,28 @@ router.delete('/users/:id', auth, async (req: Request, res: Response): Promise<v
 router.post('/forgot-password', async (req: Request, res: Response): Promise<void> => {
     try {
         const { email } = req.body;
-        const user = await User.findOne({ email });
+        console.log('Email reçu:', email);
 
+        const user = await User.findOne({ email });
         if (!user) {
+            console.log('Utilisateur non trouvé pour cet email');
             res.status(404).json({ message: "Aucun compte associé à cet email" });
             return;
         }
 
-        // Générer un token unique
         const resetToken = crypto.randomBytes(32).toString('hex');
-        const resetTokenExpiry = Date.now() + 3600000; // 1 heure
+        console.log('Token généré:', resetToken);
 
-        // Sauvegarder le token dans la base de données
         user.resetPasswordToken = resetToken;
-        user.resetPasswordExpires = resetTokenExpiry;
+        user.resetPasswordExpires = Date.now() + 3600000;
         await user.save();
 
-        // Envoyer l'email
         const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
         const mailOptions = {
-            from: process.env.EMAIL_USER,
+            from: {
+                name: 'Chessburger',
+                address: process.env.EMAIL_USER as string
+            },
             to: user.email,
             subject: 'Réinitialisation de mot de passe - Chessburger',
             html: `
@@ -183,9 +186,18 @@ router.post('/forgot-password', async (req: Request, res: Response): Promise<voi
             `
         };
 
-        await transporter.sendMail(mailOptions);
-        res.json({ message: "Email de réinitialisation envoyé" });
+        console.log('Tentative d\'envoi d\'email avec les options:', mailOptions);
+
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log('Email envoyé avec succès');
+            res.json({ message: "Email de réinitialisation envoyé" });
+        } catch (emailError) {
+            console.error('Erreur lors de l\'envoi de l\'email:', emailError);
+            res.status(500).json({ message: "Erreur lors de l'envoi de l'email" });
+        }
     } catch (error) {
+        console.error('Erreur générale:', error);
         res.status(500).json({ message: "Erreur lors de l'envoi de l'email" });
     }
 });
